@@ -1100,16 +1100,13 @@ const Game = (() => {
         grid.appendChild(el);
       }
     }
-    // Single delegated listener on the grid — avoids double-fire on mobile
-    grid._lastTap = 0;
-    grid.ontouchend = (e) => {
-      e.preventDefault();
-      grid._lastTap = Date.now();
-      const cell = e.target.closest('.cell');
-      if (cell) onCellClick(+cell.dataset.r, +cell.dataset.c);
-    };
-    grid.onclick = (e) => {
-      if (Date.now() - grid._lastTap < 600) return; // already handled by touch
+    // Use pointerdown — fires once on both touch and mouse, no double events
+    grid.style.touchAction = 'manipulation';
+    grid._pointerActive = false;
+    grid.onpointerdown = (e) => {
+      if (grid._pointerActive) return;
+      grid._pointerActive = true;
+      setTimeout(() => { grid._pointerActive = false; }, 400);
       const cell = e.target.closest('.cell');
       if (cell) onCellClick(+cell.dataset.r, +cell.dataset.c);
     };
