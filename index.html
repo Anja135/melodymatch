@@ -454,19 +454,17 @@ let busy = false;
 function rnd(t) { return Math.floor(Math.random() * t); }
 
 function makeGrid(size, types) {
-  // Fill with no initial 3-in-a-row
-  const g = Array.from({length: size}, () => new Array(size).fill(0));
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      let v;
-      do {
-        v = rnd(types);
-      } while (
-        (c >= 2 && g[r][c-1] === v && g[r][c-2] === v) ||
-        (r >= 2 && g[r-1][c] === v && g[r-2][c] === v)
-      );
-      g[r][c] = v;
-    }
+  // Fill randomly — initial matches are fine, player can tap them away
+  const g = Array.from({length: size}, () =>
+    Array.from({length: size}, () => rnd(types))
+  );
+  // Make sure there's at least a few matches to start with
+  // by placing some guaranteed 3-in-a-rows
+  for (let i = 0; i < 3; i++) {
+    const r = rnd(size);
+    const c = rnd(size - 2);
+    const v = rnd(types);
+    g[r][c] = g[r][c+1] = g[r][c+2] = v;
   }
   return g;
 }
@@ -760,6 +758,16 @@ async function clearMatches(matches) {
         refreshCell(r,c,'drop');
 
     await sleep(320);
+
+    // Auto-shuffle until there are matches on the board
+    while (findMatches(G.grid, G.cfg.size).length === 0) {
+      Music.shuffle();
+      // Re-fill board with fresh random tiles ensuring some matches
+      G.grid = makeGrid(G.cfg.size, G.cfg.types);
+      buildGrid();
+      await sleep(400);
+    }
+
     updateHUD();
     checkEnd();
   } catch(e){ console.error(e); }
