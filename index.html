@@ -715,38 +715,55 @@ function startLevel(id) {
 }
 
 // ── Input ──
+// Mechanic: tap any note that is part of a 3-in-a-row → all in that run disappear.
+// If the note has no match, it shakes.
 function onTap(r, c) {
   if (busy || G.over) return;
-  if (sel === null) {
-    // First tap: select
-    sel = {r, c};
-    const d = cellEl(r, c);
-    if (d) d.classList.add('sel');
-    Music.select();
+
+  const matches = findMatches(G.grid, G.cfg.size);
+  const isMatch = matches.some(m => m.r===r && m.c===c);
+
+  if (isMatch) {
+    G.usedMoves++;
+    G.moves--;
+    clearMatches(matches);
   } else {
-    const {r:sr, c:sc} = sel;
-    const prev = cellEl(sr, sc);
-    if (prev) prev.classList.remove('sel');
-    sel = null;
-
-    if (sr===r && sc===c) return; // tapped same cell → deselect
-
-    const adj = Math.abs(sr-r)+Math.abs(sc-c)===1;
-    if (adj && G.grid[sr][sc] !== G.grid[r][c]) {
-      G.usedMoves++;
-      doSwap(sr, sc, r, c);
-    } else if (adj && G.grid[sr][sc] === G.grid[r][c]) {
-      // Same type adjacent — no point swapping, just shake
-      const d = cellEl(r, c);
-      if (d) { d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),300); }
-    } else {
-      // Not adjacent → select the new cell instead
-      sel = {r, c};
-      const d = cellEl(r, c);
-      if (d) d.classList.add('sel');
-      Music.select();
-    }
+    // No match at this cell — shake it
+    const d = cellEl(r, c);
+    if (d) { d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),300); }
   }
+}
+
+async function clearMatches(matches) {
+  busy = true;
+  try {
+    G.notesCleared = (G.notesCleared||0) + matches.length;
+    const pts = matches.length * 30 + Math.max(0, matches.length-3) * 20;
+    G.score += pts;
+
+    matches.forEach(({r,c}) => { const d=cellEl(r,c); if(d) d.classList.add('pop'); });
+    Music.match(matches.length);
+    await sleep(350);
+
+    matches.forEach(({r,c}) => { G.grid[r][c] = -1; });
+
+    for (let c=0; c<G.cfg.size; c++) {
+      let empty = G.cfg.size-1;
+      for (let r=G.cfg.size-1; r>=0; r--) {
+        if (G.grid[r][c]>=0) { G.grid[empty][c]=G.grid[r][c]; if(empty!==r)G.grid[r][c]=-1; empty--; }
+      }
+      for (let r=empty; r>=0; r--) G.grid[r][c]=rnd(G.cfg.types);
+    }
+
+    for (let r=0;r<G.cfg.size;r++)
+      for (let c=0;c<G.cfg.size;c++)
+        refreshCell(r,c,'drop');
+
+    await sleep(320);
+    updateHUD();
+    checkEnd();
+  } catch(e){ console.error(e); }
+  finally { busy=false; }
 }
 
 // Single tap listener on the grid — works for touch & mouse
@@ -792,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
   el('btn-play').addEventListener('click', () => startLevel(chosenLevel));
 
   el('btn-help').addEventListener('click', () =>
-    alert('🎵 Ziel: Das Punkteziel vor Ablauf der Zeit/Züge erreichen.\n\n♩ Tippe eine Note an → sie leuchtet auf.\n♪ Tippe eine ANDERE Note direkt daneben an → sie tauschen die Plätze.\n♫ Entstehen dadurch 3 oder mehr GLEICHE Noten in einer Reihe oder Spalte, verschwinden sie und du bekommst Punkte!\n\n💡 Beispiel:\n  ♩ ♪ ♩ ♩\nTimp das ♪ an, dann das ♩ links → ♪ ♩ ♩ ♩ → die drei ♩ verschwinden!\n\n⚠️ Gleiche Noten gegeneinander tauschen bringt nichts.')
+    alert('🎵 So wird gespielt:\n\nSchau das Spielfeld an und suche 3 oder mehr GLEICHE Noten die direkt nebeneinander stehen — waagerecht oder senkrecht.\n\nTimpe einfach auf eine dieser Noten → alle gleichen in dieser Reihe verschwinden und du bekommst Punkte!\n\nWenn eine Note alleine steht oder nur 2 gleiche nebeneinander sind, passiert nichts.\n\n🏆 Ziel: Genug Punkte sammeln bevor Zeit oder Züge ablaufen!')
   );
 
   el('mute-btn').addEventListener('click', () => {
@@ -803,18 +820,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   el('btn-hint').addEventListener('click', () => {
     if (busy || G.over) return;
-    // Find a valid swap and highlight it
-    const {size, types} = G.cfg;
-    outer: for(let r=0;r<size;r++) for(let c=0;c<size;c++) for(const[dr,dc]of[[0,1],[1,0]]){
-      const r2=r+dr,c2=c+dc;
-      if(r2>=size||c2>=size)continue;
-      [G.grid[r][c],G.grid[r2][c2]]=[G.grid[r2][c2],G.grid[r][c]];
-      const ok=findMatches(G.grid,size).length>0;
-      [G.grid[r][c],G.grid[r2][c2]]=[G.grid[r2][c2],G.grid[r][c]];
-      if(ok){
-        [cellEl(r,c),cellEl(r2,c2)].forEach(d=>{ if(!d)return; d.style.boxShadow='0 0 0 3px #e8c97a,0 0 16px #e8c97a'; setTimeout(()=>d.style.boxShadow='',1800); });
-        break outer;
-      }
+    const matches = findMatches(G.grid, G.cfg.size);
+    if (matches.length > 0) {
+      matches.forEach(({r,c}) => {
+        const d = cellEl(r,c);
+        if (!d) return;
+        d.style.boxShadow = '0 0 0 3px #e8c97a, 0 0 16px #e8c97a';
+        setTimeout(() => d.style.boxShadow = '', 1800);
+      });
     }
   });
 
