@@ -284,61 +284,60 @@ const Music = (() => {
   const n = (base, semi) => base * Math.pow(2, semi/12);
   const C3=130.81, C4=261.63, C5=523.25;
 
-  // 6 themes: each has tempo (bar length), a list of 4-beat patterns
-  // Each beat: [bass, chord1, chord2, melody]  (null = rest)
+  // 6 cheerful themes — all major keys, bright and pleasant
   const THEMES = [
-    { // 1: Adagio — C major, slow, sparse
-      bar: 4.0,
-      seq: [
-        [C3,     n(C4,4), n(C4,7), n(C5,7)   ],
-        [n(C3,7),n(C4,4), n(C4,9), n(C5,4)   ],
-        [n(C3,5),n(C4,5), n(C4,9), n(C5,5)   ],
-        [n(C3,7),n(C4,2), n(C4,7), n(C5,2)   ],
-      ],
-    },
-    { // 2: Andante — G major pentatonic, gentle
+    { // 1: C-Dur — sanft & fröhlich, langsam
       bar: 3.2,
       seq: [
-        [n(C3,7), n(C4,7), n(C4,11),n(C5,11) ],
-        [n(C3,2), n(C4,7), n(C4,14),n(C5,14) ],
-        [n(C3,0), n(C4,4), n(C4,9), n(C5,9)  ],
+        [C3,      n(C4,4), n(C4,7), n(C5,12) ],
+        [n(C3,5), n(C4,5), n(C4,9), n(C5,9)  ],
+        [n(C3,7), n(C4,7), n(C4,11),n(C5,7)  ],
+        [n(C3,5), n(C4,4), n(C4,9), n(C5,4)  ],
+      ],
+    },
+    { // 2: G-Dur — leicht & tänzerisch
+      bar: 2.8,
+      seq: [
+        [n(C3,7), n(C4,7), n(C4,11),n(C5,14) ],
+        [n(C3,2), n(C4,6), n(C4,9), n(C5,11) ],
+        [n(C3,4), n(C4,4), n(C4,7), n(C5,9)  ],
         [n(C3,7), n(C4,7), n(C4,11),n(C5,7)  ],
       ],
     },
-    { // 3: Moderato — F major, waltz feel
-      bar: 2.8,
+    { // 3: F-Dur — warm & einladend
+      bar: 2.5,
       seq: [
         [n(C3,5), n(C4,5), n(C4,9), n(C5,12) ],
-        [n(C3,0), n(C4,4), n(C4,7), n(C5,9)  ],
-        [n(C3,7), n(C4,2), n(C4,7), n(C5,7)  ],
-        [n(C3,5), n(C4,5), n(C4,9), n(C5,5)  ],
-      ],
-    },
-    { // 4: Allegro — A minor, dreamy
-      bar: 2.4,
-      seq: [
-        [n(C3,9), n(C4,9), n(C4,12),n(C5,16) ],
+        [n(C3,0), n(C4,4), n(C4,7), n(C5,16) ],
         [n(C3,7), n(C4,7), n(C4,11),n(C5,14) ],
-        [n(C3,5), n(C4,5), n(C4,9), n(C5,12) ],
-        [n(C3,4), n(C4,4), n(C4,7), n(C5,9)  ],
+        [n(C3,5), n(C4,5), n(C4,9), n(C5,9)  ],
       ],
     },
-    { // 5: Vivace — D major, bright
-      bar: 2.0,
+    { // 4: D-Dur — hell & strahlend
+      bar: 2.2,
       seq: [
         [n(C3,2), n(C4,2), n(C4,6), n(C5,9)  ],
-        [n(C3,9), n(C4,6), n(C4,9), n(C5,14) ],
-        [n(C3,7), n(C4,2), n(C4,6), n(C5,11) ],
-        [n(C3,2), n(C4,2), n(C4,6), n(C5,6)  ],
+        [n(C3,9), n(C4,9), n(C4,13),n(C5,13) ],
+        [n(C3,7), n(C4,6), n(C4,9), n(C5,11) ],
+        [n(C3,2), n(C4,2), n(C4,6), n(C5,14) ],
       ],
     },
-    { // 6: Presto — E minor, flowing
+    { // 5: A-Dur — beschwingt & lebendig
+      bar: 2.0,
+      seq: [
+        [n(C3,9), n(C4,9), n(C4,13),n(C5,16) ],
+        [n(C3,4), n(C4,4), n(C4,8), n(C5,13) ],
+        [n(C3,7), n(C4,7), n(C4,11),n(C5,11) ],
+        [n(C3,9), n(C4,9), n(C4,13),n(C5,9)  ],
+      ],
+    },
+    { // 6: E-Dur — festlich & schwungvoll
       bar: 1.8,
       seq: [
-        [n(C3,4), n(C4,4), n(C4,7), n(C5,11) ],
-        [n(C3,11),n(C4,2), n(C4,7), n(C5,14) ],
-        [n(C3,7), n(C4,7), n(C4,11),n(C5,16) ],
-        [n(C3,9), n(C4,0), n(C4,4), n(C5,12) ],
+        [n(C3,4), n(C4,4), n(C4,8), n(C5,11) ],
+        [n(C3,11),n(C4,11),n(C4,15),n(C5,15) ],
+        [n(C3,9), n(C4,9), n(C4,13),n(C5,16) ],
+        [n(C3,4), n(C4,4), n(C4,8), n(C5,13) ],
       ],
     },
   ];
@@ -735,34 +734,43 @@ function onTap(r, c) {
 async function clearMatches(matches) {
   busy = true;
   try {
-    G.notesCleared = (G.notesCleared||0) + matches.length;
-    const pts = matches.length * 30 + Math.max(0, matches.length-3) * 20;
-    G.score += pts;
+    let combo = 0;
+    let toProcess = matches;
 
-    matches.forEach(({r,c}) => { const d=cellEl(r,c); if(d) d.classList.add('pop'); });
-    Music.match(matches.length);
-    await sleep(350);
+    // Keep clearing as long as new matches form (cascades)
+    while (toProcess.length > 0) {
+      combo++;
+      G.notesCleared = (G.notesCleared||0) + toProcess.length;
+      const pts = toProcess.length * 30 * combo + Math.max(0, toProcess.length-3) * 20;
+      G.score += pts;
 
-    matches.forEach(({r,c}) => { G.grid[r][c] = -1; });
+      toProcess.forEach(({r,c}) => { const d=cellEl(r,c); if(d) d.classList.add('pop'); });
+      Music.match(toProcess.length);
+      await sleep(350);
 
-    for (let c=0; c<G.cfg.size; c++) {
-      let empty = G.cfg.size-1;
-      for (let r=G.cfg.size-1; r>=0; r--) {
-        if (G.grid[r][c]>=0) { G.grid[empty][c]=G.grid[r][c]; if(empty!==r)G.grid[r][c]=-1; empty--; }
+      toProcess.forEach(({r,c}) => { G.grid[r][c] = -1; });
+
+      for (let c=0; c<G.cfg.size; c++) {
+        let empty = G.cfg.size-1;
+        for (let r=G.cfg.size-1; r>=0; r--) {
+          if (G.grid[r][c]>=0) { G.grid[empty][c]=G.grid[r][c]; if(empty!==r)G.grid[r][c]=-1; empty--; }
+        }
+        for (let r=empty; r>=0; r--) G.grid[r][c]=rnd(G.cfg.types);
       }
-      for (let r=empty; r>=0; r--) G.grid[r][c]=rnd(G.cfg.types);
+
+      for (let r=0;r<G.cfg.size;r++)
+        for (let c=0;c<G.cfg.size;c++)
+          refreshCell(r,c,'drop');
+
+      await sleep(320);
+
+      // Check for new matches formed by fallen tiles
+      toProcess = findMatches(G.grid, G.cfg.size);
     }
 
-    for (let r=0;r<G.cfg.size;r++)
-      for (let c=0;c<G.cfg.size;c++)
-        refreshCell(r,c,'drop');
-
-    await sleep(320);
-
-    // Auto-shuffle until there are matches on the board
+    // If still no matches on board → auto-refill with new tiles
     while (findMatches(G.grid, G.cfg.size).length === 0) {
       Music.shuffle();
-      // Re-fill board with fresh random tiles ensuring some matches
       G.grid = makeGrid(G.cfg.size, G.cfg.types);
       buildGrid();
       await sleep(400);
