@@ -405,6 +405,15 @@ const Mp3 = (() => {
   const files = {};   // level (1-6) -> { url, name, audio }
   let currentLvl = 0;
 
+  // Audiodateien aus dem Repo vorladen (level1.mpeg … level6.mpeg)
+  const BASE_NAMES = ['level1.mpeg','level2.mpeg','level3.mpeg','level4.mpeg','level5.mpeg','level6.mpeg'];
+  const DISPLAY_NAMES = ['Für Elise','Kanon in D','Mondscheinsonate','Ode an die Freude','Schwanensee','Rondo alla Turca'];
+  for (let i = 1; i <= 6; i++) {
+    const audio = new Audio(BASE_NAMES[i-1]);
+    audio.loop = true;
+    files[i] = { url: BASE_NAMES[i-1], name: DISPLAY_NAMES[i-1], audio, builtin: true };
+  }
+
   function stopAll() {
     Object.values(files).forEach(f => { if (f.audio) { f.audio.pause(); f.audio.currentTime = 0; } });
     currentLvl = 0;
@@ -412,17 +421,22 @@ const Mp3 = (() => {
 
   return {
     set(level, file) {
-      if (files[level]?.url) URL.revokeObjectURL(files[level].url);
+      // Wenn vorher builtin: Audio-Objekt ersetzen, nicht revokeObjectURL
+      if (files[level] && !files[level].builtin) URL.revokeObjectURL(files[level].url);
       const url = URL.createObjectURL(file);
       const audio = new Audio(url);
       audio.loop = true;
-      files[level] = { url, name: file.name, audio };
+      files[level] = { url, name: file.name, audio, builtin: false };
     },
     clear(level) {
-      if (files[level]?.url) URL.revokeObjectURL(files[level].url);
-      delete files[level];
+      // Zurück zur eingebauten Datei
+      if (files[level] && !files[level].builtin) URL.revokeObjectURL(files[level].url);
+      const audio = new Audio(BASE_NAMES[level-1]);
+      audio.loop = true;
+      files[level] = { url: BASE_NAMES[level-1], name: DISPLAY_NAMES[level-1], audio, builtin: true };
     },
     has(level) { return !!files[level]; },
+    isCustom(level) { return files[level] && !files[level].builtin; },
     name(level) { return files[level]?.name || ''; },
     play(level, muted) {
       stopAll();
@@ -734,9 +748,9 @@ function startLevel(id) {
   $('h-tgt').textContent = cfg.target;
   updateHUD();
   buildGrid();
-  // MP3 hat Vorrang; sonst synthetisierte Musik
-  const useMp3 = Mp3.play(cfg.id, Snd._muted);
-  if (useMp3) Snd.stop(); else Snd.play(cfg.id);
+  // MP3 abspielen (eingebaut oder eigene); Synthesizer als Fallback
+  Snd.stop();
+  Mp3.play(cfg.id, Snd._muted);
 
   G.timer = setInterval(() => {
     if (G.over) return;
@@ -794,12 +808,12 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 1; i <= 6; i++) {
       const row = document.createElement('div');
       row.className = 'mp3-row';
-      const hasMp3 = Mp3.has(i);
+      const isCustom = Mp3.isCustom(i);
       row.innerHTML = `
         <span class="mp3-lbl">Level ${i}</span>
-        <span class="mp3-name" id="mp3n${i}">${hasMp3 ? '✓ ' + Mp3.name(i) : LEVEL_NAMES[i-1]}</span>
-        <button class="mp3-pick" data-lvl="${i}">Datei…</button>
-        ${hasMp3 ? `<button class="mp3-clear" data-clr="${i}" title="Entfernen">✕</button>` : ''}
+        <span class="mp3-name" id="mp3n${i}">${isCustom ? '🎵 ' + Mp3.name(i) : '♪ ' + Mp3.name(i)}</span>
+        <button class="mp3-pick" data-lvl="${i}">${isCustom ? 'Ändern…' : 'Ersetzen…'}</button>
+        ${isCustom ? `<button class="mp3-clear" data-clr="${i}" title="Original wiederherstellen">↺</button>` : ''}
       `;
       cont.appendChild(row);
     }
