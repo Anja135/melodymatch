@@ -253,7 +253,7 @@ const Snd = (() => {
   // Format: array of bars; each bar = array of [beatOffset, midiNote, duration_beats, volume]
   const THEMES = [
     // 1: C-Dur Walzer — langsam & zart (♩=80)
-    { bpm: 80, beats: 3, bars: [
+    { bpm: 115, beats: 3, bars: [
       [[0,60,.9,.10],[0,64,.9,.07],[0,67,.9,.07],[1,72,.8,.12],[2,71,.8,.11]],
       [[0,55,.9,.10],[0,59,.9,.07],[0,62,.9,.07],[1,67,.8,.11],[2,69,.8,.10]],
       [[0,57,.9,.10],[0,60,.9,.07],[0,65,.9,.07],[1,65,.8,.12],[2,64,.8,.10]],
@@ -348,12 +348,12 @@ const SYMS = ['♩','♪','♫','♬','♭','♯'];
 const COLS = ['n0','n1','n2','n3','n4','n5'];
 
 const LEVELS = [
-  {id:1, size:6, types:4, target:5000,  moves:120, time:600},
-  {id:2, size:7, types:4, target:10000, moves:110, time:540},
-  {id:3, size:7, types:5, target:18000, moves:100, time:480},
-  {id:4, size:8, types:5, target:30000, moves:90,  time:420},
-  {id:5, size:8, types:6, target:45000, moves:80,  time:360},
-  {id:6, size:8, types:6, target:65000, moves:70,  time:300},
+  {id:1, size:6, types:4, target:5000,  moves:80, time:480}, // 4 Typen, überschaubar
+  {id:2, size:7, types:5, target:10000, moves:70, time:420}, // 5 Typen = weniger Kaskaden
+  {id:3, size:7, types:5, target:18000, moves:60, time:360},
+  {id:4, size:8, types:6, target:30000, moves:55, time:300}, // 6 Typen = selten Kaskaden
+  {id:5, size:8, types:6, target:45000, moves:45, time:240},
+  {id:6, size:8, types:6, target:65000, moves:35, time:180},
 ];
 
 let G = null;      // game state
