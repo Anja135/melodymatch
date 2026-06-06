@@ -1087,9 +1087,9 @@ const Game = (() => {
 
   function buildGrid() {
     const cfg = state.cfg;
-    const grid = document.getElementById('game-grid');
-    grid.style.gridTemplateColumns = `repeat(${cfg.gridSize}, 1fr)`;
-    grid.innerHTML = '';
+    const gridEl = document.getElementById('game-grid');
+    gridEl.style.gridTemplateColumns = `repeat(${cfg.gridSize}, 1fr)`;
+    gridEl.innerHTML = '';
     for (let r = 0; r < cfg.gridSize; r++) {
       for (let c = 0; c < cfg.gridSize; c++) {
         const el = document.createElement('div');
@@ -1097,19 +1097,40 @@ const Game = (() => {
         el.dataset.r = r;
         el.dataset.c = c;
         el.textContent = NOTE_TYPES[state.grid[r][c]].sym;
-        grid.appendChild(el);
+        gridEl.appendChild(el);
       }
     }
-    // Use pointerdown — fires once on both touch and mouse, no double events
-    grid.style.touchAction = 'manipulation';
-    grid._pointerActive = false;
-    grid.onpointerdown = (e) => {
-      if (grid._pointerActive) return;
-      grid._pointerActive = true;
-      setTimeout(() => { grid._pointerActive = false; }, 400);
+    attachGridInput(gridEl);
+  }
+
+  // Robust input: works on mobile and desktop, no double-fire
+  function attachGridInput(gridEl) {
+    let tapLock = false;
+
+    function handleTap(r, c) {
+      if (tapLock) return;
+      tapLock = true;
+      onCellClick(r, c);
+      // short lock to absorb ghost click after touchend
+      setTimeout(() => { tapLock = false; }, 350);
+    }
+
+    // Touch: use touchstart for instant response
+    gridEl.addEventListener('touchstart', (e) => {
+      const touch = e.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const cell = el && el.closest('.cell');
+      if (cell) {
+        e.preventDefault();
+        handleTap(+cell.dataset.r, +cell.dataset.c);
+      }
+    }, { passive: false });
+
+    // Mouse (desktop only — suppressed after touch via tapLock)
+    gridEl.addEventListener('click', (e) => {
       const cell = e.target.closest('.cell');
-      if (cell) onCellClick(+cell.dataset.r, +cell.dataset.c);
-    };
+      if (cell) handleTap(+cell.dataset.r, +cell.dataset.c);
+    });
   }
 
   function updateHUD() {
