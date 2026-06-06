@@ -342,6 +342,9 @@
     transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
     position: relative;
     user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     border: 1px solid rgba(255,255,255,0.08);
   }
   .cell:hover {
@@ -1094,7 +1097,9 @@ const Game = (() => {
         el.dataset.r = r;
         el.dataset.c = c;
         el.textContent = NOTE_TYPES[state.grid[r][c]].sym;
-        el.addEventListener('click', () => onCellClick(r, c));
+        const handler = (e) => { e.preventDefault(); onCellClick(r, c); };
+        el.addEventListener('click', handler);
+        el.addEventListener('touchend', handler, { passive: false });
         grid.appendChild(el);
       }
     }
@@ -1358,11 +1363,6 @@ const Game = (() => {
     updateHUD();
     buildGrid();
 
-    // Bind cell clicks
-    document.querySelectorAll('.cell').forEach(el => {
-      el.addEventListener('click', () => onCellClick(+el.dataset.r, +el.dataset.c));
-    });
-
     // Timer
     state.timerInterval = setInterval(() => {
       state.timeLeft--;
@@ -1387,13 +1387,14 @@ const Game = (() => {
 //  UI WIRING
 // ═══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  // Init audio on first interaction
+  // Init audio on first interaction (click or touch)
   function ensureAudio() {
-    Audio.init();
-    Audio.startMusic();
+    try { Audio.init(); Audio.startMusic(); } catch(e) {}
     document.removeEventListener('click', ensureAudio);
+    document.removeEventListener('touchstart', ensureAudio);
   }
   document.addEventListener('click', ensureAudio);
+  document.addEventListener('touchstart', ensureAudio, { passive: true });
 
   // Highscore
   document.getElementById('hs-display').textContent =
