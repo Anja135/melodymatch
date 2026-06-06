@@ -540,6 +540,7 @@ function buildGrid() {
       grid.appendChild(d);
     }
   }
+  attachCellListeners();
 }
 
 function refreshCell(r, c, anim) {
@@ -820,25 +821,17 @@ async function clearMatchesInner(matches) {
   finally { busy = false; }
 }
 
-// Single tap listener on the grid — works for touch & mouse
+// Single tap listener — each cell gets its own listener for reliability
 function initGridInput() {
-  const grid = el('grid');
-  let lastTap = 0;
+  // Called by buildGrid after cells are created
+}
 
-  grid.addEventListener('touchstart', e => {
-    e.preventDefault();
-    const t = e.changedTouches[0];
-    const target = document.elementFromPoint(t.clientX, t.clientY);
-    const cell = target && target.closest('.cell');
-    if (!cell) return;
-    lastTap = Date.now();
-    onTap(+cell.dataset.r, +cell.dataset.c);
-  }, {passive: false});
-
-  grid.addEventListener('click', e => {
-    if (Date.now() - lastTap < 500) return; // suppress ghost click after touch
-    const cell = e.target.closest('.cell');
-    if (cell) onTap(+cell.dataset.r, +cell.dataset.c);
+function attachCellListeners() {
+  document.querySelectorAll('#grid .cell').forEach(cell => {
+    cell.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      onTap(+cell.dataset.r, +cell.dataset.c);
+    }, {passive: false});
   });
 }
 
