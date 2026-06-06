@@ -171,10 +171,9 @@ body {
 
 <!-- ═══ GAME ═══ -->
 <div id="s-game" class="screen">
-  <div class="hud">
+  <div class="hud" style="grid-template-columns:repeat(3,1fr)">
     <div class="hud-box"><div class="hud-lbl">Punkte</div><div class="hud-val" id="h-pts">0</div></div>
     <div class="hud-box"><div class="hud-lbl">Level</div><div class="hud-val" id="h-lvl">1</div></div>
-    <div class="hud-box"><div class="hud-lbl">Züge</div><div class="hud-val" id="h-mv">30</div></div>
     <div class="hud-box"><div class="hud-lbl">Zeit</div><div class="hud-val" id="h-tm">60</div></div>
   </div>
   <div class="prog-wrap">
@@ -197,7 +196,6 @@ body {
     <div class="card-sub">Level bestanden</div>
     <div class="stat-row">
       <div class="stat"><div class="stat-lbl">Punkte</div><div class="stat-val" id="w-pts">0</div></div>
-      <div class="stat"><div class="stat-lbl">Züge</div><div class="stat-val" id="w-mv">0</div></div>
       <div class="stat"><div class="stat-lbl">Zeit übrig</div><div class="stat-val" id="w-tm">0s</div></div>
       <div class="stat"><div class="stat-lbl">Noten</div><div class="stat-val" id="w-nt">0</div></div>
     </div>
@@ -532,7 +530,6 @@ function redrawCell(r, c, anim) {
 
 function updateHUD() {
   $('h-pts').textContent = G.pts;
-  $('h-mv').textContent  = G.moves;
   const t = $('h-tm');
   t.textContent = G.time;
   t.className = 'hud-val' + (G.time <= 15 ? ' warn' : '');
@@ -653,7 +650,6 @@ async function onTap(r, c) {
       });
     } else {
       // Valid match → clear + cascade
-      G.moves--;
       await doClear(matches);
       updateHUD();
       checkEnd();
@@ -668,7 +664,7 @@ function checkEnd() {
     G.over = true;
     clearInterval(G.timer);
     setTimeout(showWin, 400);
-  } else if (G.moves <= 0 || G.time <= 0) {
+  } else if (G.time <= 0) {
     G.over = true;
     clearInterval(G.timer);
     setTimeout(showLose, 400);
@@ -677,7 +673,6 @@ function checkEnd() {
 
 function showWin() {
   $('w-pts').textContent = G.pts;
-  $('w-mv').textContent  = G.cfg.moves - G.moves;
   $('w-tm').textContent  = G.time + 's';
   $('w-nt').textContent  = G.notes;
   const hs = +localStorage.getItem('mm_hs') || 0;
