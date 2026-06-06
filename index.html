@@ -1097,12 +1097,22 @@ const Game = (() => {
         el.dataset.r = r;
         el.dataset.c = c;
         el.textContent = NOTE_TYPES[state.grid[r][c]].sym;
-        const handler = (e) => { e.preventDefault(); onCellClick(r, c); };
-        el.addEventListener('click', handler);
-        el.addEventListener('touchend', handler, { passive: false });
         grid.appendChild(el);
       }
     }
+    // Single delegated listener on the grid — avoids double-fire on mobile
+    grid._lastTap = 0;
+    grid.ontouchend = (e) => {
+      e.preventDefault();
+      grid._lastTap = Date.now();
+      const cell = e.target.closest('.cell');
+      if (cell) onCellClick(+cell.dataset.r, +cell.dataset.c);
+    };
+    grid.onclick = (e) => {
+      if (Date.now() - grid._lastTap < 600) return; // already handled by touch
+      const cell = e.target.closest('.cell');
+      if (cell) onCellClick(+cell.dataset.r, +cell.dataset.c);
+    };
   }
 
   function updateHUD() {
