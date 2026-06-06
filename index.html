@@ -132,22 +132,6 @@ body {
   color: #1a0f00; font-size: .62rem; font-weight: bold; letter-spacing: 2px;
   padding: 4px 14px; border-radius: 20px; margin-bottom: 10px; }
 
-/* ── MUSIK-EINSTELLUNGEN ── */
-#musik-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.82);
-  z-index:80; align-items:center; justify-content:center; }
-.musik-panel { background:#1a1a2e; border:1px solid rgba(232,201,122,.3);
-  border-radius:20px; padding:24px 20px; width:100%; max-width:370px; }
-.musik-panel h2 { color:#e8c97a; font-size:1.2rem; margin-bottom:4px; text-align:center; }
-.musik-panel p  { font-size:.7rem; opacity:.5; text-align:center; margin-bottom:16px; letter-spacing:1px; }
-.mp3-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.mp3-lbl { color:#c9a96e; font-size:.8rem; min-width:68px; }
-.mp3-name { flex:1; font-size:.72rem; opacity:.55; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.mp3-pick { background:rgba(232,201,122,.12); border:1px solid rgba(232,201,122,.3);
-  color:#e8c97a; border-radius:8px; padding:5px 10px; font-size:.72rem; cursor:pointer;
-  white-space:nowrap; touch-action:manipulation; }
-.mp3-pick:active { background:rgba(232,201,122,.25); }
-.mp3-clear { background:transparent; border:none; color:#ff6060; font-size:1rem; cursor:pointer; padding:4px; }
-
 /* ── MUTE ── */
 #mute { position: fixed; top: 12px; right: 12px; z-index: 99;
   width: 38px; height: 38px; border-radius: 50%;
@@ -160,17 +144,6 @@ body {
 <body>
 
 <button id="mute">♪</button>
-<button id="btn-musik-open" style="position:fixed;top:12px;left:12px;z-index:99;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(232,201,122,.25);color:#c9a96e;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="Eigene Musik">🎵</button>
-
-<!-- ═══ MUSIK-EINSTELLUNGEN ═══ -->
-<div id="musik-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:80;align-items:center;justify-content:center;">
-  <div class="musik-panel">
-    <h2>🎵 Eigene Musik</h2>
-    <p>MP3-Datei je Level wählen (optional)</p>
-    <div id="mp3-rows"></div>
-    <button class="btn btn-line" id="btn-musik-close" style="margin-top:8px;">✓ Fertig</button>
-  </div>
-</div>
 
 <!-- ═══ START ═══ -->
 <div id="s-start" class="screen active">
@@ -420,24 +393,6 @@ const Mp3 = (() => {
   }
 
   return {
-    set(level, file) {
-      // Wenn vorher builtin: Audio-Objekt ersetzen, nicht revokeObjectURL
-      if (files[level] && !files[level].builtin) URL.revokeObjectURL(files[level].url);
-      const url = URL.createObjectURL(file);
-      const audio = new Audio(url);
-      audio.loop = true;
-      files[level] = { url, name: file.name, audio, builtin: false };
-    },
-    clear(level) {
-      // Zurück zur eingebauten Datei
-      if (files[level] && !files[level].builtin) URL.revokeObjectURL(files[level].url);
-      const audio = new Audio(BASE_NAMES[level-1]);
-      audio.loop = true;
-      files[level] = { url: BASE_NAMES[level-1], name: DISPLAY_NAMES[level-1], audio, builtin: true };
-    },
-    has(level) { return !!files[level]; },
-    isCustom(level) { return files[level] && !files[level].builtin; },
-    name(level) { return files[level]?.name || ''; },
     play(level, muted) {
       stopAll();
       if (!files[level]) return false;
@@ -764,9 +719,8 @@ function startLevel(id) {
 
 // ── Event listeners ──
 document.addEventListener('DOMContentLoaded', () => {
-  // Start audio on first touch/click
-  const startAudio = () => { Snd.init(); Snd.play(1); };
-  document.addEventListener('pointerdown', startAudio, {once: true});
+  // AudioContext bei erstem Touch initialisieren
+  document.addEventListener('pointerdown', () => Snd.init(), {once: true});
 
   $('hs').textContent = localStorage.getItem('mm_hs') || '0';
 
@@ -798,49 +752,6 @@ document.addEventListener('DOMContentLoaded', () => {
     Mp3.setVolume(m ? 0 : 0.85);
     $('mute').textContent = m ? '🔇' : '♪';
     $('mute').style.opacity = m ? '.4' : '1';
-  });
-
-  // ── Musik-Einstellungen ──
-  const LEVEL_NAMES = ['Song 1','Song 2','Song 3','Song 4','Song 5','Song 6'];
-  function buildMp3Rows() {
-    const cont = $('mp3-rows');
-    cont.innerHTML = '';
-    for (let i = 1; i <= 6; i++) {
-      const row = document.createElement('div');
-      row.className = 'mp3-row';
-      const isCustom = Mp3.isCustom(i);
-      row.innerHTML = `
-        <span class="mp3-lbl">Level ${i}</span>
-        <span class="mp3-name" id="mp3n${i}">${isCustom ? '🎵 ' + Mp3.name(i) : '♪ ' + Mp3.name(i)}</span>
-        <button class="mp3-pick" data-lvl="${i}">${isCustom ? 'Ändern…' : 'Ersetzen…'}</button>
-        ${isCustom ? `<button class="mp3-clear" data-clr="${i}" title="Original wiederherstellen">↺</button>` : ''}
-      `;
-      cont.appendChild(row);
-    }
-    // file-pick buttons
-    cont.querySelectorAll('.mp3-pick').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const inp = document.createElement('input');
-        inp.type = 'file'; inp.accept = 'audio/mp3,audio/mpeg,audio/*';
-        inp.onchange = () => {
-          if (!inp.files[0]) return;
-          Mp3.set(+btn.dataset.lvl, inp.files[0]);
-          buildMp3Rows();
-        };
-        inp.click();
-      });
-    });
-    cont.querySelectorAll('.mp3-clear').forEach(btn => {
-      btn.addEventListener('click', () => { Mp3.clear(+btn.dataset.clr); buildMp3Rows(); });
-    });
-  }
-
-  $('btn-musik-open').addEventListener('click', () => {
-    buildMp3Rows();
-    $('musik-overlay').style.display = 'flex';
-  });
-  $('btn-musik-close').addEventListener('click', () => {
-    $('musik-overlay').style.display = 'none';
   });
 
   // Tipp-Button
