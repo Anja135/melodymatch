@@ -342,46 +342,86 @@ const Music = (() => {
     },
   ];
 
+  // Short bouncy piano note — bright attack, quick decay = cheerful sound
   function tone(freq, t, dur, vol, bus) {
     if (!ctx || !freq) return;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    const f = ctx.createBiquadFilter();
-    o.type = 'sine'; o.frequency.value = freq;
-    f.type = 'lowpass'; f.frequency.value = 1600;
+    o.type = 'triangle'; // brighter than sine
+    o.frequency.value = freq;
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vol, t + 0.05);
-    g.gain.exponentialRampToValueAtTime(vol * 0.4, t + dur * 0.4);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(f); f.connect(g); g.connect(bus || bgBus);
-    o.start(t); o.stop(t + dur + 0.05);
-    // Soft 2nd harmonic for warmth
-    const o2 = ctx.createOscillator();
-    const g2 = ctx.createGain();
-    o2.type = 'sine'; o2.frequency.value = freq * 2;
-    g2.gain.setValueAtTime(0, t);
-    g2.gain.linearRampToValueAtTime(vol * 0.08, t + 0.05);
-    g2.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.5);
-    o2.connect(g2); g2.connect(bus || bgBus);
-    o2.start(t); o2.stop(t + dur * 0.5 + 0.05);
+    g.gain.linearRampToValueAtTime(vol, t + 0.015); // fast attack
+    g.gain.exponentialRampToValueAtTime(vol * 0.3, t + dur * 0.3);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.85);
+    o.connect(g); g.connect(bus || bgBus);
+    o.start(t); o.stop(t + dur + 0.02);
   }
+
+  // 6 cheerful themes — upbeat major key melodies
+  // Each theme: array of bars, each bar: array of [time_offset, freq, duration, vol]
+  const BEAT = 0.42; // one beat in seconds — lively tempo
+
+  const THEMES = [
+    { // 1: C-Dur Walzer — ♩♩♩ bouncy 3/4
+      bar: BEAT * 3,
+      play(t) {
+        const [C,E,G,c,e,g,d,f,a,b] = [261,330,392,523,659,784,294,349,440,494];
+        // bar 1: C chord oom-pah-pah
+        tone(C/2,t,       BEAT*2.8,0.10); tone(G,t+BEAT,  BEAT*0.7,0.06); tone(E,t+BEAT*2,BEAT*0.7,0.06);
+        // melody
+        tone(g,  t,       BEAT*0.8,0.12); tone(e,t+BEAT,  BEAT*0.8,0.10); tone(c,t+BEAT*2,BEAT*0.8,0.11);
+      }
+    },
+    { // 2: G-Dur — fröhlicher Marsch
+      bar: BEAT * 4,
+      play(t) {
+        const G2=196,D3=294,G3=392,B3=494,D4=587,G4=784,A4=880,B4=988,D5=1175;
+        tone(G2,t,         BEAT*3.8,0.10); tone(D3,t+BEAT*2,BEAT*1.8,0.07);
+        tone(G4,t,         BEAT*0.7,0.12); tone(B4,t+BEAT,  BEAT*0.7,0.11);
+        tone(D5,t+BEAT*2,  BEAT*0.7,0.12); tone(G4,t+BEAT*3,BEAT*0.7,0.10);
+      }
+    },
+    { // 3: F-Dur — Spieluhr-Melodie
+      bar: BEAT * 4,
+      play(t) {
+        const F3=175,A3=220,C4=262,F4=349,G4=392,A4=440,C5=523,F5=698;
+        tone(F3,t,        BEAT*3.8,0.09); tone(C4,t+BEAT*2,BEAT*1.8,0.06);
+        tone(C5,t,        BEAT*0.7,0.12); tone(A4,t+BEAT,  BEAT*0.7,0.10);
+        tone(F4,t+BEAT*2, BEAT*0.7,0.11); tone(G4,t+BEAT*3,BEAT*0.7,0.10);
+      }
+    },
+    { // 4: D-Dur — strahlend & beschwingt
+      bar: BEAT * 4,
+      play(t) {
+        const D3=147,A3=220,D4=294,Fs4=370,A4=440,D5=587,E5=659,Fs5=740,A5=880;
+        tone(D3,t,        BEAT*3.8,0.10); tone(A3,t+BEAT*2,BEAT*1.8,0.07);
+        tone(D5,t,        BEAT*0.8,0.13); tone(Fs5,t+BEAT, BEAT*0.8,0.11);
+        tone(A5,t+BEAT*2, BEAT*0.8,0.12); tone(Fs5,t+BEAT*3,BEAT*0.7,0.10);
+      }
+    },
+    { // 5: A-Dur — quirlig & lebendig
+      bar: BEAT * 3,
+      play(t) {
+        const A2=110,E3=165,A3=220,Cs4=277,E4=330,A4=440,B4=494,Cs5=554,E5=659;
+        tone(A2,t,        BEAT*2.8,0.10); tone(E3,t+BEAT,  BEAT*0.7,0.06); tone(Cs4,t+BEAT*2,BEAT*0.7,0.06);
+        tone(E5,t,        BEAT*0.7,0.13); tone(Cs5,t+BEAT, BEAT*0.7,0.11); tone(A4,t+BEAT*2,BEAT*0.7,0.12);
+      }
+    },
+    { // 6: E-Dur — festlich & schwungvoll, schneller
+      bar: BEAT * 2,
+      play(t) {
+        const E3=165,B3=247,E4=330,Gs4=415,B4=494,E5=659,Fs5=740,Gs5=831,B5=988;
+        tone(E3,t,        BEAT*1.8,0.10); tone(B3,t+BEAT,  BEAT*0.8,0.07);
+        tone(E5,t,        BEAT*0.7,0.13); tone(Gs5,t+BEAT, BEAT*0.7,0.12);
+      }
+    },
+  ];
 
   function schedBar() {
     if (!playing) return;
     const th = THEMES[(lvl-1) % 6];
-    const t  = nextT;
-    const b  = th.bar;
-    const beat = b / 4;
-    const [bass, ch1, ch2, mel] = th.seq[bar % 4];
-
-    tone(bass, t,            b * 0.9,  0.09); // bass — long held
-    tone(ch1,  t + 0.02,    b * 0.85, 0.06); // chord notes
-    tone(ch2,  t + 0.04,    b * 0.85, 0.06);
-    tone(mel,  t + beat,    beat*0.8, 0.10); // melody — 2nd beat
-    tone(ch1,  t + beat*2,  beat*0.7, 0.05); // light chord echo
-    tone(mel && mel*0.75, t+beat*3, beat*0.6, 0.07); // lower echo
-
-    nextT += b;
+    th.play(nextT);
+    nextT += th.bar;
     bar++;
   }
 
@@ -713,12 +753,24 @@ function startLevel(id) {
 }
 
 // ── Input ──
-// Tap cell A → highlight. Tap adjacent cell B → swap.
-// If swap creates 3-in-a-row → auto-clear + cascade.
-// If no match → swap back (shake).
+// 1. Tap a cell in an existing 3-in-a-row → clears immediately
+// 2. Tap any cell → select it; tap adjacent cell → swap
+//    If swap makes a match → clear; else → swap back
 function onTap(r, c) {
   if (busy || G.over) return;
 
+  // Check if tapped cell is already part of a match
+  const existing = findMatches(G.grid, G.cfg.size);
+  if (existing.some(m => m.r===r && m.c===c)) {
+    // Clear all existing matches on one tap
+    sel = null;
+    document.querySelectorAll('.cell.sel').forEach(d => d.classList.remove('sel'));
+    G.moves--; G.usedMoves++;
+    clearMatchesInner(existing);
+    return;
+  }
+
+  // Otherwise: swap mechanic
   if (sel === null) {
     sel = {r, c};
     const d = cellEl(r, c);
@@ -733,11 +785,9 @@ function onTap(r, c) {
 
     const adj = Math.abs(sr-r) + Math.abs(sc-c) === 1;
     if (adj) {
-      G.usedMoves++;
-      G.moves--;
+      G.moves--; G.usedMoves++;
       doSwap(sr, sc, r, c);
     } else {
-      // Not adjacent → select new cell
       sel = {r, c};
       const d = cellEl(r, c);
       if (d) d.classList.add('sel');
@@ -754,21 +804,19 @@ async function doSwap(r1, c1, r2, c2) {
 
     const matches = findMatches(G.grid, G.cfg.size);
     if (matches.length === 0) {
-      // No match → swap back
-      await sleep(180);
+      await sleep(200);
       [G.grid[r1][c1], G.grid[r2][c2]] = [G.grid[r2][c2], G.grid[r1][c1]];
       refreshCell(r1, c1);
       refreshCell(r2, c2);
       [cellEl(r1,c1), cellEl(r2,c2)].forEach(d => {
         if (d) { d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),300); }
       });
-      G.usedMoves--; G.moves++; // undo move count
+      G.moves++; G.usedMoves--; // undo
       busy = false;
       return;
     }
     await clearMatchesInner(matches);
   } catch(e) { console.error(e); busy = false; }
-  // busy is reset inside clearMatchesInner's finally block
 }
 
 async function clearMatchesInner(matches) {
