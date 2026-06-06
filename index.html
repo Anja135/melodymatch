@@ -495,13 +495,7 @@ async function doClear(matches) {
       redrawCell(r, c, 'drop');
 
   await sleep(300);
-
-  // Auto-cascade: if new matches formed, clear them too
-  const next = findMatches(G.grid, G.cfg.size);
-  if (next.length > 0) {
-    updateHUD();
-    await doClear(next);
-  }
+  // No auto-cascade — player must make the next move manually
 }
 
 // ── Input ──
