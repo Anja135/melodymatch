@@ -6,477 +6,348 @@
 <title>MelodyMatch</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
 body {
-  background: #0a0a18;
+  background: #0f0f1e;
   color: #f0e6d3;
   font-family: Georgia, serif;
   min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 
 /* ── SCREENS ── */
-.screen { display: none; flex-direction: column; align-items: center; width: 100%; padding: 16px; gap: 14px; }
+.screen { display: none; flex-direction: column; align-items: center; width: 100%; padding: 16px; gap: 12px; }
 .screen.active { display: flex; }
 
-/* ── TITLE ── */
-.title { font-size: clamp(2rem,7vw,3.5rem); font-weight: bold; text-align: center;
-  background: linear-gradient(135deg,#c9a96e,#fff8e7,#c9a96e);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  letter-spacing: 3px; }
-.subtitle { font-size: 0.85rem; letter-spacing: 4px; opacity: 0.5; text-transform: uppercase; text-align: center; }
-.note-deco { font-size: 2.5rem; text-align: center; opacity: 0.7; }
+.title { font-size: clamp(2rem,7vw,3.2rem); font-weight: bold; text-align: center;
+  color: #e8c97a; letter-spacing: 3px; text-shadow: 0 0 20px rgba(232,201,122,0.4); }
+.subtitle { font-size: .8rem; letter-spacing: 4px; opacity: .5; text-transform: uppercase; }
+.note-row { font-size: 2rem; opacity: .7; letter-spacing: 8px; }
 
-/* ── PANEL ── */
-.panel {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(201,169,110,0.25);
-  border-radius: 18px;
-  padding: 24px 20px;
-  width: 100%; max-width: 400px;
-}
+.panel { background: rgba(255,255,255,.04); border: 1px solid rgba(232,201,122,.2);
+  border-radius: 18px; padding: 22px 18px; width: 100%; max-width: 380px; }
 
-/* ── BUTTONS ── */
-.btn {
-  display: block; width: 100%; padding: 14px;
-  border-radius: 12px; border: none; cursor: pointer;
-  font-family: Georgia, serif; font-size: 1rem;
-  font-weight: bold; letter-spacing: 2px; text-transform: uppercase;
-  margin-bottom: 10px; transition: transform 0.1s, opacity 0.1s;
-  touch-action: manipulation;
-}
-.btn:active { transform: scale(0.97); opacity: 0.85; }
-.btn-gold { background: linear-gradient(135deg,#c9a96e,#e8c97a); color: #1a1000; }
-.btn-outline { background: transparent; color: #c9a96e; border: 1px solid rgba(201,169,110,0.4); }
-
-/* ── LEVEL GRID ── */
-.level-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 16px; }
-.lvl-btn {
-  padding: 10px 6px; border-radius: 10px; border: 1px solid rgba(201,169,110,0.25);
-  background: rgba(255,255,255,0.03); color: #f0e6d3; cursor: pointer; text-align: center;
-  touch-action: manipulation; transition: all 0.15s;
-}
-.lvl-btn.sel { background: rgba(201,169,110,0.18); border-color: #c9a96e; color: #e8c97a; }
-.lvl-num { font-size: 1.4rem; font-weight: bold; display: block; }
-.lvl-name { font-size: 0.65rem; opacity: 0.6; letter-spacing: 1px; }
-
-.hs-box { text-align: center; padding: 12px; background: rgba(201,169,110,0.08);
-  border-radius: 10px; border: 1px solid rgba(201,169,110,0.15); margin-bottom: 16px; }
-.hs-label { font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: #c9a96e; opacity: 0.7; }
+.hs-box { text-align: center; padding: 10px; background: rgba(232,201,122,.08);
+  border-radius: 10px; margin-bottom: 14px; }
+.hs-lbl { font-size: .65rem; letter-spacing: 3px; text-transform: uppercase; color: #c9a96e; }
 .hs-val { font-size: 1.8rem; color: #e8c97a; font-weight: bold; }
 
-/* ── GAME HUD ── */
-.hud {
-  width: 100%; max-width: 420px;
-  display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 8px; padding: 10px 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(201,169,110,0.2);
-  border-radius: 14px;
-}
+.lvl-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-bottom: 14px; }
+.lvl-btn { padding: 10px 5px; border-radius: 9px; border: 1px solid rgba(232,201,122,.2);
+  background: rgba(255,255,255,.03); color: #f0e6d3; cursor: pointer; text-align: center;
+  touch-action: manipulation; transition: all .15s; }
+.lvl-btn:active, .lvl-btn.sel { background: rgba(232,201,122,.18); border-color: #e8c97a; color: #e8c97a; }
+.lvl-n { font-size: 1.3rem; font-weight: bold; display: block; }
+.lvl-t { font-size: .62rem; opacity: .6; }
+
+.btn { display: block; width: 100%; padding: 13px; border-radius: 11px; border: none;
+  cursor: pointer; font-family: Georgia,serif; font-size: .95rem; font-weight: bold;
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 9px;
+  touch-action: manipulation; transition: transform .1s; }
+.btn:active { transform: scale(.97); }
+.btn-gold { background: linear-gradient(135deg,#c9a96e,#e8c97a); color: #1a0f00; }
+.btn-line { background: transparent; color: #c9a96e; border: 1px solid rgba(232,201,122,.35); }
+
+/* ── HUD ── */
+.hud { width: 100%; max-width: 420px; display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 6px; padding: 9px 12px; background: rgba(255,255,255,.04);
+  border: 1px solid rgba(232,201,122,.18); border-radius: 13px; }
 .hud-box { text-align: center; }
-.hud-label { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: #c9a96e; opacity: 0.7; }
-.hud-val { font-size: 1.3rem; color: #e8c97a; font-weight: bold; line-height: 1.2; }
-.hud-val.warn { color: #ff6b6b; animation: blink .5s infinite; }
+.hud-lbl { font-size: .56rem; letter-spacing: 2px; text-transform: uppercase; color: #c9a96e; opacity: .7; }
+.hud-val { font-size: 1.2rem; color: #e8c97a; font-weight: bold; line-height: 1.2; }
+.hud-val.warn { color: #ff6060; animation: blink .5s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-/* ── PROGRESS ── */
 .prog-wrap { width: 100%; max-width: 420px; }
-.prog-info { display: flex; justify-content: space-between; font-size: 0.68rem; opacity: 0.5; margin-bottom: 3px; }
-.prog-bar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.prog-info { display: flex; justify-content: space-between; font-size: .66rem; opacity: .5; margin-bottom: 3px; }
+.prog-bar { height: 5px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
 .prog-fill { height: 100%; background: linear-gradient(90deg,#c9a96e,#e8c97a);
-  border-radius: 3px; transition: width .4s; box-shadow: 0 0 6px rgba(201,169,110,.5); }
+  border-radius: 3px; transition: width .4s; }
 
-/* ── GAME GRID ── */
-#grid {
-  display: grid; gap: 5px; padding: 12px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(201,169,110,0.18);
-  border-radius: 16px;
-  touch-action: none; /* prevents scroll while playing */
-}
+/* ── GRID ── */
+#grid { display: grid; gap: 5px; padding: 11px;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(232,201,122,.15);
+  border-radius: 15px; touch-action: none; }
 
 .cell {
-  width: 54px; height: 54px;
-  border-radius: 11px;
+  width: 52px; height: 52px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.7rem;
-  cursor: pointer;
-  border: 1px solid rgba(255,255,255,0.07);
-  transition: transform 0.12s;
+  font-size: 1.6rem; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.08);
   user-select: none; -webkit-user-select: none;
-  position: relative;
+  position: relative; overflow: hidden;
 }
-@media(max-width:380px){ .cell{width:46px;height:46px;font-size:1.4rem;} }
-@media(min-width:500px){ .cell{width:62px;height:62px;font-size:2rem;} }
+@media(max-width:370px){ .cell{width:44px;height:44px;font-size:1.3rem;} }
+@media(min-width:480px){ .cell{width:60px;height:60px;font-size:1.9rem;} }
 
-.cell.n0 { background: linear-gradient(135deg,#1e3f7a,#2e6abf); }
-.cell.n1 { background: linear-gradient(135deg,#5a1a7a,#8a2abf); }
-.cell.n2 { background: linear-gradient(135deg,#1a6030,#28994a); }
-.cell.n3 { background: linear-gradient(135deg,#7a3a10,#bf6020); }
-.cell.n4 { background: linear-gradient(135deg,#6a1515,#bf2525); }
-.cell.n5 { background: linear-gradient(135deg,#106060,#209090); }
+/* Note colors — clearly distinct */
+.n0 { background: linear-gradient(135deg,#1a4080,#2060c0); }   /* blue */
+.n1 { background: linear-gradient(135deg,#6b1a80,#a030c0); }   /* purple */
+.n2 { background: linear-gradient(135deg,#1a6e30,#28a845); }   /* green */
+.n3 { background: linear-gradient(135deg,#805010,#c07820); }   /* orange */
+.n4 { background: linear-gradient(135deg,#801818,#c02828); }   /* red */
+.n5 { background: linear-gradient(135deg,#106868,#18a0a0); }   /* teal */
 
 .cell.sel {
-  transform: scale(1.13);
-  box-shadow: 0 0 0 3px #e8c97a, 0 0 18px rgba(232,201,122,.5);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 3px #e8c97a, 0 0 14px rgba(232,201,122,.6);
   z-index: 2;
 }
-.cell.pop {
-  animation: pop .35s ease forwards;
-}
+/* pop = disappear */
+.cell.pop { animation: pop .35s ease forwards; pointer-events: none; }
 @keyframes pop {
-  0%  { transform: scale(1.15); opacity: 1; filter: brightness(2.5); }
-  60% { transform: scale(1.5);  opacity: .5; filter: brightness(3) blur(1px); }
-  100%{ transform: scale(0);    opacity: 0; }
+  0%  { transform: scale(1.1); opacity: 1; filter: brightness(2.5); }
+  50% { transform: scale(1.4); opacity: .5; }
+  100%{ transform: scale(0);   opacity: 0; }
 }
-.cell.drop {
-  animation: drop .3s cubic-bezier(.34,1.56,.64,1) forwards;
-}
+/* drop = fall in */
+.cell.drop { animation: drop .28s cubic-bezier(.34,1.56,.64,1) forwards; }
 @keyframes drop {
-  0%  { transform: translateY(-70px) scale(.7); opacity: 0; }
-  100%{ transform: translateY(0) scale(1);       opacity: 1; }
+  from{ transform: translateY(-60px) scale(.7); opacity:0; }
+  to  { transform: translateY(0)     scale(1);  opacity:1; }
 }
-.cell.shake {
-  animation: shake .25s ease;
-}
+/* shake = invalid move */
+.cell.shake { animation: shake .25s ease; }
 @keyframes shake {
-  0%,100%{ transform: translateX(0); }
-  25%    { transform: translateX(-5px); }
-  75%    { transform: translateX(5px); }
+  0%,100%{ transform:translateX(0); }
+  30%    { transform:translateX(-6px); }
+  70%    { transform:translateX(6px); }
 }
 
-/* ── FOOTER BUTTONS ── */
+/* ── GAME FOOTER ── */
 .game-btns { display: flex; gap: 8px; width: 100%; max-width: 420px; }
-.game-btns .btn { font-size: 0.75rem; padding: 10px; margin: 0; flex: 1; }
+.game-btns .btn { font-size: .72rem; padding: 9px; margin: 0; flex: 1; }
 
 /* ── RESULT ── */
-.result-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(201,169,110,.3);
-  border-radius: 22px;
-  padding: 40px 30px;
-  width: 100%; max-width: 360px;
-  text-align: center;
-}
-.result-icon { font-size: 4rem; margin-bottom: 14px; }
-.result-title { font-size: 2.2rem; font-weight: bold; margin-bottom: 6px; }
-.result-title.gold { color: #e8c97a; }
-.result-title.silver { color: #a8b8c8; }
-.result-sub { font-size: .75rem; letter-spacing: 3px; text-transform: uppercase; opacity: .5; margin-bottom: 20px; }
-.result-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
-.result-stat { background: rgba(255,255,255,.04); border-radius: 10px; padding: 12px;
-  border: 1px solid rgba(201,169,110,.12); }
-.rs-label { font-size: .62rem; letter-spacing: 2px; text-transform: uppercase; color: #c9a96e; opacity: .7; }
-.rs-val { font-size: 1.5rem; color: #e8c97a; font-weight: bold; }
-.new-rec { display: inline-block; background: linear-gradient(135deg,#c9a96e,#e8c97a);
-  color: #1a1000; font-size: .65rem; font-weight: bold; letter-spacing: 2px;
-  text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px; }
+.card { background: rgba(255,255,255,.04); border: 1px solid rgba(232,201,122,.25);
+  border-radius: 20px; padding: 36px 26px; width: 100%; max-width: 340px; text-align: center; }
+.card-icon { font-size: 3.5rem; margin-bottom: 12px; }
+.card-title { font-size: 2rem; font-weight: bold; margin-bottom: 5px; }
+.gold { color: #e8c97a; } .silver { color: #a0b0c0; }
+.card-sub { font-size: .72rem; letter-spacing: 3px; text-transform: uppercase; opacity: .5; margin-bottom: 18px; }
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 20px; }
+.stat { background: rgba(255,255,255,.04); border-radius: 9px; padding: 11px;
+  border: 1px solid rgba(232,201,122,.1); }
+.stat-lbl { font-size: .6rem; letter-spacing: 2px; text-transform: uppercase; color: #c9a96e; opacity: .7; }
+.stat-val { font-size: 1.4rem; color: #e8c97a; font-weight: bold; }
+.rec-badge { display: inline-block; background: linear-gradient(135deg,#c9a96e,#e8c97a);
+  color: #1a0f00; font-size: .62rem; font-weight: bold; letter-spacing: 2px;
+  padding: 4px 14px; border-radius: 20px; margin-bottom: 10px; }
 
-/* ── MUSIC TOGGLE ── */
-#mute-btn {
-  position: fixed; top: 14px; right: 14px; z-index: 50;
-  width: 40px; height: 40px; border-radius: 50%;
-  background: rgba(255,255,255,.07); border: 1px solid rgba(201,169,110,.3);
-  color: #c9a96e; font-size: 1.2rem; cursor: pointer;
+/* ── MUTE ── */
+#mute { position: fixed; top: 12px; right: 12px; z-index: 99;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(232,201,122,.25);
+  color: #c9a96e; font-size: 1.1rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  touch-action: manipulation;
-}
+  touch-action: manipulation; }
 </style>
 </head>
 <body>
 
-<button id="mute-btn">♪</button>
+<button id="mute">♪</button>
 
-<!-- START -->
+<!-- ═══ START ═══ -->
 <div id="s-start" class="screen active">
-  <div class="note-deco">♩ ♪ ♫ ♬</div>
+  <div class="note-row">♩ ♪ ♫ ♬</div>
   <div class="title">MelodyMatch</div>
   <div class="subtitle">Das Musiknoten-Spiel</div>
 
   <div class="panel">
     <div class="hs-box">
-      <div class="hs-label">🏆 Highscore</div>
+      <div class="hs-lbl">🏆 Highscore</div>
       <div class="hs-val" id="hs">0</div>
     </div>
-
-    <div class="level-grid" id="level-grid">
-      <button class="lvl-btn sel" data-l="1"><span class="lvl-num">1</span><span class="lvl-name">Adagio</span></button>
-      <button class="lvl-btn" data-l="2"><span class="lvl-num">2</span><span class="lvl-name">Andante</span></button>
-      <button class="lvl-btn" data-l="3"><span class="lvl-num">3</span><span class="lvl-name">Moderato</span></button>
-      <button class="lvl-btn" data-l="4"><span class="lvl-num">4</span><span class="lvl-name">Allegro</span></button>
-      <button class="lvl-btn" data-l="5"><span class="lvl-num">5</span><span class="lvl-name">Vivace</span></button>
-      <button class="lvl-btn" data-l="6"><span class="lvl-num">6</span><span class="lvl-name">Presto</span></button>
+    <div class="lvl-grid">
+      <button class="lvl-btn sel" data-l="1"><span class="lvl-n">1</span><span class="lvl-t">Adagio</span></button>
+      <button class="lvl-btn" data-l="2"><span class="lvl-n">2</span><span class="lvl-t">Andante</span></button>
+      <button class="lvl-btn" data-l="3"><span class="lvl-n">3</span><span class="lvl-t">Moderato</span></button>
+      <button class="lvl-btn" data-l="4"><span class="lvl-n">4</span><span class="lvl-t">Allegro</span></button>
+      <button class="lvl-btn" data-l="5"><span class="lvl-n">5</span><span class="lvl-t">Vivace</span></button>
+      <button class="lvl-btn" data-l="6"><span class="lvl-n">6</span><span class="lvl-t">Presto</span></button>
     </div>
-
     <button class="btn btn-gold" id="btn-play">♫ Spielen</button>
-    <button class="btn btn-outline" id="btn-help">Wie spielt man?</button>
+    <button class="btn btn-line" id="btn-help">Wie spielt man?</button>
   </div>
 </div>
 
-<!-- GAME -->
+<!-- ═══ GAME ═══ -->
 <div id="s-game" class="screen">
   <div class="hud">
-    <div class="hud-box"><div class="hud-label">Punkte</div><div class="hud-val" id="h-score">0</div></div>
-    <div class="hud-box"><div class="hud-label">Level</div><div class="hud-val" id="h-level">1</div></div>
-    <div class="hud-box"><div class="hud-label">Züge</div><div class="hud-val" id="h-moves">30</div></div>
-    <div class="hud-box"><div class="hud-label">Zeit</div><div class="hud-val" id="h-time">60</div></div>
+    <div class="hud-box"><div class="hud-lbl">Punkte</div><div class="hud-val" id="h-pts">0</div></div>
+    <div class="hud-box"><div class="hud-lbl">Level</div><div class="hud-val" id="h-lvl">1</div></div>
+    <div class="hud-box"><div class="hud-lbl">Züge</div><div class="hud-val" id="h-mv">30</div></div>
+    <div class="hud-box"><div class="hud-lbl">Zeit</div><div class="hud-val" id="h-tm">60</div></div>
   </div>
   <div class="prog-wrap">
-    <div class="prog-info"><span>Ziel: <b id="h-target">500</b></span><span id="h-pct">0%</span></div>
-    <div class="prog-bar"><div class="prog-fill" id="h-prog" style="width:0%"></div></div>
+    <div class="prog-info"><span>Ziel: <b id="h-tgt">5000</b></span><span id="h-pct">0%</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="h-prog" style="width:0"></div></div>
   </div>
   <div id="grid"></div>
   <div class="game-btns">
-    <button class="btn btn-outline" id="btn-hint">💡 Tipp</button>
-    <button class="btn btn-outline" id="btn-shuffle">🔀 Mischen</button>
-    <button class="btn btn-outline" id="btn-menu">← Menü</button>
+    <button class="btn btn-line" id="btn-hint">💡 Tipp</button>
+    <button class="btn btn-line" id="btn-menu">← Menü</button>
   </div>
 </div>
 
-<!-- COMPLETE -->
-<div id="s-complete" class="screen">
-  <div class="result-card">
-    <div class="result-icon">🎵</div>
-    <div id="rec-badge" class="new-rec" style="display:none">✦ Neuer Rekord ✦</div>
-    <div class="result-title gold">Bravo!</div>
-    <div class="result-sub">Level bestanden</div>
-    <div class="result-row">
-      <div class="result-stat"><div class="rs-label">Punkte</div><div class="rs-val" id="r-score">0</div></div>
-      <div class="result-stat"><div class="rs-label">Züge</div><div class="rs-val" id="r-moves">0</div></div>
-      <div class="result-stat"><div class="rs-label">Zeit übrig</div><div class="rs-val" id="r-time">0s</div></div>
-      <div class="result-stat"><div class="rs-label">Noten</div><div class="rs-val" id="r-notes">0</div></div>
+<!-- ═══ WIN ═══ -->
+<div id="s-win" class="screen">
+  <div class="card">
+    <div class="card-icon">🎵</div>
+    <div id="rec" class="rec-badge" style="display:none">✦ Neuer Rekord ✦</div>
+    <div class="card-title gold">Bravo!</div>
+    <div class="card-sub">Level bestanden</div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-lbl">Punkte</div><div class="stat-val" id="w-pts">0</div></div>
+      <div class="stat"><div class="stat-lbl">Züge</div><div class="stat-val" id="w-mv">0</div></div>
+      <div class="stat"><div class="stat-lbl">Zeit übrig</div><div class="stat-val" id="w-tm">0s</div></div>
+      <div class="stat"><div class="stat-lbl">Noten</div><div class="stat-val" id="w-nt">0</div></div>
     </div>
     <button class="btn btn-gold" id="btn-next">Nächstes Level ♫</button>
-    <button class="btn btn-outline" id="btn-c-menu">← Menü</button>
+    <button class="btn btn-line" id="btn-wmenu">← Menü</button>
   </div>
 </div>
 
-<!-- GAME OVER -->
-<div id="s-over" class="screen">
-  <div class="result-card">
-    <div class="result-icon">🎼</div>
-    <div class="result-title silver">Game Over</div>
-    <div class="result-sub">Ziel nicht erreicht</div>
-    <div class="result-row">
-      <div class="result-stat"><div class="rs-label">Punkte</div><div class="rs-val" id="go-score">0</div></div>
-      <div class="result-stat"><div class="rs-label">Ziel war</div><div class="rs-val" id="go-target">0</div></div>
+<!-- ═══ LOSE ═══ -->
+<div id="s-lose" class="screen">
+  <div class="card">
+    <div class="card-icon">🎼</div>
+    <div class="card-title silver">Game Over</div>
+    <div class="card-sub">Ziel nicht erreicht</div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-lbl">Punkte</div><div class="stat-val" id="l-pts">0</div></div>
+      <div class="stat"><div class="stat-lbl">Ziel war</div><div class="stat-val" id="l-tgt">0</div></div>
     </div>
     <button class="btn btn-gold" id="btn-retry">↺ Nochmal</button>
-    <button class="btn btn-outline" id="btn-o-menu">← Menü</button>
+    <button class="btn btn-line" id="btn-lmenu">← Menü</button>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════
-//  MUSIC ENGINE
-// ═══════════════════════════════════
-const Music = (() => {
-  let ctx, master, sfxBus, bgBus;
-  let muted = false, playing = false, timer = null;
-  let lvl = 1, bar = 0, nextT = 0;
+'use strict';
 
-  // Note frequencies
-  const n = (base, semi) => base * Math.pow(2, semi/12);
-  const C3=130.81, C4=261.63, C5=523.25;
+// ════════════════════════════════════════════
+//  MUSIC  — 6 clearly different cheerful themes
+// ════════════════════════════════════════════
+const Snd = (() => {
+  let AC, master, muted = false, playing = false, tmr = null, lvl = 1, seq = 0, nextT = 0;
 
-  // 6 cheerful themes — all major keys, bright and pleasant
-  const THEMES = [
-    { // 1: C-Dur — sanft & fröhlich, langsam
-      bar: 3.2,
-      seq: [
-        [C3,      n(C4,4), n(C4,7), n(C5,12) ],
-        [n(C3,5), n(C4,5), n(C4,9), n(C5,9)  ],
-        [n(C3,7), n(C4,7), n(C4,11),n(C5,7)  ],
-        [n(C3,5), n(C4,4), n(C4,9), n(C5,4)  ],
-      ],
-    },
-    { // 2: G-Dur — leicht & tänzerisch
-      bar: 2.8,
-      seq: [
-        [n(C3,7), n(C4,7), n(C4,11),n(C5,14) ],
-        [n(C3,2), n(C4,6), n(C4,9), n(C5,11) ],
-        [n(C3,4), n(C4,4), n(C4,7), n(C5,9)  ],
-        [n(C3,7), n(C4,7), n(C4,11),n(C5,7)  ],
-      ],
-    },
-    { // 3: F-Dur — warm & einladend
-      bar: 2.5,
-      seq: [
-        [n(C3,5), n(C4,5), n(C4,9), n(C5,12) ],
-        [n(C3,0), n(C4,4), n(C4,7), n(C5,16) ],
-        [n(C3,7), n(C4,7), n(C4,11),n(C5,14) ],
-        [n(C3,5), n(C4,5), n(C4,9), n(C5,9)  ],
-      ],
-    },
-    { // 4: D-Dur — hell & strahlend
-      bar: 2.2,
-      seq: [
-        [n(C3,2), n(C4,2), n(C4,6), n(C5,9)  ],
-        [n(C3,9), n(C4,9), n(C4,13),n(C5,13) ],
-        [n(C3,7), n(C4,6), n(C4,9), n(C5,11) ],
-        [n(C3,2), n(C4,2), n(C4,6), n(C5,14) ],
-      ],
-    },
-    { // 5: A-Dur — beschwingt & lebendig
-      bar: 2.0,
-      seq: [
-        [n(C3,9), n(C4,9), n(C4,13),n(C5,16) ],
-        [n(C3,4), n(C4,4), n(C4,8), n(C5,13) ],
-        [n(C3,7), n(C4,7), n(C4,11),n(C5,11) ],
-        [n(C3,9), n(C4,9), n(C4,13),n(C5,9)  ],
-      ],
-    },
-    { // 6: E-Dur — festlich & schwungvoll
-      bar: 1.8,
-      seq: [
-        [n(C3,4), n(C4,4), n(C4,8), n(C5,11) ],
-        [n(C3,11),n(C4,11),n(C4,15),n(C5,15) ],
-        [n(C3,9), n(C4,9), n(C4,13),n(C5,16) ],
-        [n(C3,4), n(C4,4), n(C4,8), n(C5,13) ],
-      ],
-    },
-  ];
+  const hz = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
 
-  // Short bouncy piano note — bright attack, quick decay = cheerful sound
-  function tone(freq, t, dur, vol, bus) {
-    if (!ctx || !freq) return;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = 'triangle'; // brighter than sine
-    o.frequency.value = freq;
+  // piano-like tone: triangle wave, bouncy envelope
+  function note(midi, t, dur, vol) {
+    if (!AC || muted || !midi) return;
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'triangle';
+    o.frequency.value = hz(midi);
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vol, t + 0.015); // fast attack
-    g.gain.exponentialRampToValueAtTime(vol * 0.3, t + dur * 0.3);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.85);
-    o.connect(g); g.connect(bus || bgBus);
-    o.start(t); o.stop(t + dur + 0.02);
+    g.gain.linearRampToValueAtTime(vol, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(vol * 0.25, t + dur * 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.9);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + dur + 0.05);
   }
 
-  // 6 cheerful themes — upbeat major key melodies
-  // Each theme: array of bars, each bar: array of [time_offset, freq, duration, vol]
-  const BEAT = 0.42; // one beat in seconds — lively tempo
-
+  // MIDI note numbers (middle C = 60)
+  // 6 themes, each with a distinct tempo and melody
+  // Format: array of bars; each bar = array of [beatOffset, midiNote, duration_beats, volume]
   const THEMES = [
-    { // 1: C-Dur Walzer — ♩♩♩ bouncy 3/4
-      bar: BEAT * 3,
-      play(t) {
-        const [C,E,G,c,e,g,d,f,a,b] = [261,330,392,523,659,784,294,349,440,494];
-        // bar 1: C chord oom-pah-pah
-        tone(C/2,t,       BEAT*2.8,0.10); tone(G,t+BEAT,  BEAT*0.7,0.06); tone(E,t+BEAT*2,BEAT*0.7,0.06);
-        // melody
-        tone(g,  t,       BEAT*0.8,0.12); tone(e,t+BEAT,  BEAT*0.8,0.10); tone(c,t+BEAT*2,BEAT*0.8,0.11);
-      }
-    },
-    { // 2: G-Dur — fröhlicher Marsch
-      bar: BEAT * 4,
-      play(t) {
-        const G2=196,D3=294,G3=392,B3=494,D4=587,G4=784,A4=880,B4=988,D5=1175;
-        tone(G2,t,         BEAT*3.8,0.10); tone(D3,t+BEAT*2,BEAT*1.8,0.07);
-        tone(G4,t,         BEAT*0.7,0.12); tone(B4,t+BEAT,  BEAT*0.7,0.11);
-        tone(D5,t+BEAT*2,  BEAT*0.7,0.12); tone(G4,t+BEAT*3,BEAT*0.7,0.10);
-      }
-    },
-    { // 3: F-Dur — Spieluhr-Melodie
-      bar: BEAT * 4,
-      play(t) {
-        const F3=175,A3=220,C4=262,F4=349,G4=392,A4=440,C5=523,F5=698;
-        tone(F3,t,        BEAT*3.8,0.09); tone(C4,t+BEAT*2,BEAT*1.8,0.06);
-        tone(C5,t,        BEAT*0.7,0.12); tone(A4,t+BEAT,  BEAT*0.7,0.10);
-        tone(F4,t+BEAT*2, BEAT*0.7,0.11); tone(G4,t+BEAT*3,BEAT*0.7,0.10);
-      }
-    },
-    { // 4: D-Dur — strahlend & beschwingt
-      bar: BEAT * 4,
-      play(t) {
-        const D3=147,A3=220,D4=294,Fs4=370,A4=440,D5=587,E5=659,Fs5=740,A5=880;
-        tone(D3,t,        BEAT*3.8,0.10); tone(A3,t+BEAT*2,BEAT*1.8,0.07);
-        tone(D5,t,        BEAT*0.8,0.13); tone(Fs5,t+BEAT, BEAT*0.8,0.11);
-        tone(A5,t+BEAT*2, BEAT*0.8,0.12); tone(Fs5,t+BEAT*3,BEAT*0.7,0.10);
-      }
-    },
-    { // 5: A-Dur — quirlig & lebendig
-      bar: BEAT * 3,
-      play(t) {
-        const A2=110,E3=165,A3=220,Cs4=277,E4=330,A4=440,B4=494,Cs5=554,E5=659;
-        tone(A2,t,        BEAT*2.8,0.10); tone(E3,t+BEAT,  BEAT*0.7,0.06); tone(Cs4,t+BEAT*2,BEAT*0.7,0.06);
-        tone(E5,t,        BEAT*0.7,0.13); tone(Cs5,t+BEAT, BEAT*0.7,0.11); tone(A4,t+BEAT*2,BEAT*0.7,0.12);
-      }
-    },
-    { // 6: E-Dur — festlich & schwungvoll, schneller
-      bar: BEAT * 2,
-      play(t) {
-        const E3=165,B3=247,E4=330,Gs4=415,B4=494,E5=659,Fs5=740,Gs5=831,B5=988;
-        tone(E3,t,        BEAT*1.8,0.10); tone(B3,t+BEAT,  BEAT*0.8,0.07);
-        tone(E5,t,        BEAT*0.7,0.13); tone(Gs5,t+BEAT, BEAT*0.7,0.12);
-      }
-    },
+    // 1: C-Dur Walzer — langsam & zart (♩=80)
+    { bpm: 80, beats: 3, bars: [
+      [[0,60,.9,.10],[0,64,.9,.07],[0,67,.9,.07],[1,72,.8,.12],[2,71,.8,.11]],
+      [[0,55,.9,.10],[0,59,.9,.07],[0,62,.9,.07],[1,67,.8,.11],[2,69,.8,.10]],
+      [[0,57,.9,.10],[0,60,.9,.07],[0,65,.9,.07],[1,65,.8,.12],[2,64,.8,.10]],
+      [[0,55,.9,.10],[0,59,.9,.07],[0,62,.9,.07],[1,62,.8,.11],[2,60,.8,.13]],
+    ]},
+    // 2: G-Dur Marsch — fröhlich & schwungvoll (♩=110)
+    { bpm: 110, beats: 4, bars: [
+      [[0,43,1.8,.11],[2,50,1.8,.08],[0,67,.7,.13],[1,71,.7,.12],[2,74,.7,.13],[3,71,.7,.11]],
+      [[0,38,1.8,.11],[2,50,1.8,.08],[0,74,.7,.13],[1,71,.7,.11],[2,67,.7,.12],[3,64,.7,.11]],
+      [[0,41,1.8,.11],[2,48,1.8,.08],[0,65,.7,.12],[1,69,.7,.12],[2,72,.7,.13],[3,74,.7,.12]],
+      [[0,43,1.8,.11],[2,50,1.8,.08],[0,79,.7,.14],[1,77,.7,.12],[2,74,.7,.13],[3,72,.7,.14]],
+    ]},
+    // 3: F-Dur Spieluhr — süß & sanft (♩=96)
+    { bpm: 96, beats: 4, bars: [
+      [[0,41,1.8,.10],[2,48,1.8,.07],[0,77,.6,.11],[.5,76,.6,.10],[1,77,.6,.11],[1.5,74,.6,.10],[2,72,.9,.12],[3,69,.9,.11]],
+      [[0,36,1.8,.10],[2,48,1.8,.07],[0,69,.6,.11],[.5,71,.6,.10],[1,72,.6,.11],[1.5,74,.6,.10],[2,72,.9,.12],[3,67,.9,.11]],
+      [[0,43,1.8,.10],[2,47,1.8,.07],[0,74,.6,.11],[.5,72,.6,.10],[1,71,.6,.11],[1.5,69,.6,.10],[2,67,.9,.12],[3,65,.9,.11]],
+      [[0,41,1.8,.10],[2,48,1.8,.07],[0,65,.6,.11],[.5,67,.6,.10],[1,69,.6,.12],[1.5,71,.6,.11],[2,72,.9,.13],[3,77,.9,.12]],
+    ]},
+    // 4: D-Dur — strahlend & beschwingt (♩=120)
+    { bpm: 120, beats: 4, bars: [
+      [[0,38,1.8,.11],[2,45,1.8,.08],[0,74,.6,.14],[.5,78,.6,.12],[1,81,.6,.13],[2,78,.6,.12],[3,74,.6,.13],[3.5,71,.6,.11]],
+      [[0,33,1.8,.11],[2,45,1.8,.08],[0,69,.6,.12],[.5,74,.6,.13],[1,78,.6,.14],[2,81,.6,.13],[3,83,.6,.14],[3.5,81,.6,.12]],
+      [[0,43,1.8,.11],[2,47,1.8,.08],[0,78,.6,.13],[.5,76,.6,.12],[1,74,.6,.13],[2,71,.6,.12],[3,69,.6,.13],[3.5,67,.6,.11]],
+      [[0,38,1.8,.11],[2,45,1.8,.08],[0,67,.6,.12],[.5,69,.6,.11],[1,71,.6,.12],[1.5,74,.6,.13],[2,78,.9,.14],[3,81,.9,.15]],
+    ]},
+    // 5: A-Dur — quirlig & lebendig (♩=138)
+    { bpm: 138, beats: 3, bars: [
+      [[0,33,1.8,.11],[0,69,.5,.13],[.5,73,.5,.12],[1,76,.5,.13],[1.5,69,.5,.12],[2,73,.5,.13],[2.5,76,.5,.14]],
+      [[0,28,1.8,.11],[0,73,.5,.12],[.5,76,.5,.13],[1,80,.5,.14],[1.5,76,.5,.13],[2,73,.5,.12],[2.5,69,.5,.13]],
+      [[0,31,1.8,.11],[0,71,.5,.12],[.5,73,.5,.11],[1,76,.5,.13],[1.5,78,.5,.12],[2,80,.5,.13],[2.5,83,.5,.14]],
+      [[0,33,1.8,.11],[0,81,.5,.14],[.5,80,.5,.13],[1,78,.5,.12],[1.5,76,.5,.13],[2,73,.5,.12],[2.5,69,.9,.15]],
+    ]},
+    // 6: E-Dur — festlich & schnell (♩=160)
+    { bpm: 160, beats: 2, bars: [
+      [[0,28,1.8,.11],[0,76,.4,.14],[.25,80,.4,.13],[.5,83,.4,.14],[.75,80,.4,.13],[1,84,.4,.15],[1.5,83,.4,.14]],
+      [[0,23,1.8,.11],[0,80,.4,.13],[.25,83,.4,.14],[.5,87,.4,.15],[.75,83,.4,.14],[1,80,.4,.13],[1.5,76,.4,.14]],
+      [[0,31,1.8,.11],[0,76,.4,.12],[.25,78,.4,.13],[.5,80,.4,.14],[.75,83,.4,.13],[1,85,.4,.14],[1.5,87,.4,.15]],
+      [[0,28,1.8,.11],[0,84,.4,.14],[.25,83,.4,.13],[.5,80,.4,.14],[.75,78,.4,.13],[1,76,.4,.14],[1.5,72,.9,.15]],
+    ]},
   ];
 
   function schedBar() {
-    if (!playing) return;
-    const th = THEMES[(lvl-1) % 6];
-    th.play(nextT);
-    nextT += th.bar;
-    bar++;
+    if (!playing || !AC) return;
+    const th = THEMES[(lvl - 1) % 6];
+    const beatLen = 60 / th.bpm;
+    const barLen  = beatLen * th.beats;
+    const barData = th.bars[seq % th.bars.length];
+    barData.forEach(([beat, midi, dur, vol]) => {
+      note(midi, nextT + beat * beatLen, dur * beatLen, vol);
+    });
+    nextT += barLen;
+    seq++;
   }
 
   function loop() {
-    if (!playing) return;
-    const th = THEMES[(lvl-1) % 6];
-    while (nextT < ctx.currentTime + th.bar * 2) schedBar();
-    timer = setTimeout(loop, 300);
-  }
-
-  function sfx(freqs, vols, gap) {
-    if (!ctx || muted) return;
-    const t = ctx.currentTime + 0.01;
-    freqs.forEach((f, i) => tone(f, t + i*gap, 0.4, vols[i] || 0.18, sfxBus));
+    if (!playing || !AC) return;
+    const th = THEMES[(lvl - 1) % 6];
+    const barLen = 60 / th.bpm * th.beats;
+    while (nextT < AC.currentTime + barLen * 3) schedBar();
+    tmr = setTimeout(loop, 300);
   }
 
   return {
     init() {
-      if (ctx) return;
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
-      master = ctx.createGain(); master.gain.value = 0.75;
-      bgBus  = ctx.createGain(); bgBus.gain.value  = 1.0;
-      sfxBus = ctx.createGain(); sfxBus.gain.value = 1.0;
-      bgBus.connect(master); sfxBus.connect(master);
-      master.connect(ctx.destination);
+      if (AC) return;
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      master = AC.createGain(); master.gain.value = 0.7;
+      master.connect(AC.destination);
     },
     play(level) {
-      if (!ctx) return;
-      clearTimeout(timer); playing = false;
-      lvl = level; bar = 0;
-      nextT = ctx.currentTime + 0.3;
+      if (!AC) return;
+      playing = false; clearTimeout(tmr);
+      lvl = level; seq = 0;
+      nextT = AC.currentTime + 0.1;
       playing = true; loop();
     },
-    stop() { playing = false; clearTimeout(timer); },
-    toggleMute() {
+    stop() { playing = false; clearTimeout(tmr); },
+    mute() {
       muted = !muted;
-      if (master) master.gain.value = muted ? 0 : 0.75;
+      if (master) master.gain.value = muted ? 0 : 0.7;
       if (!muted && !playing) this.play(lvl);
       return muted;
     },
-    select() { sfx([n(C5,4)], [0.15], 0); },
-    match(c)  { sfx([C5, n(C5,4), n(C5,7), n(C5,11)].slice(0,Math.min(c,4)), [.18,.18,.18,.18], 0.09); },
-    levelUp() { sfx([C4, n(C4,4), n(C4,7), n(C5,0)], [.2,.2,.2,.25], 0.14); },
-    gameOver() { sfx([n(C4,7), n(C4,4), C4], [.15,.15,.15], 0.2); },
-    shuffle()  { sfx([C5, n(C5,2), n(C5,4), n(C5,7)], [.12,.12,.12,.12], 0.07); },
-    get muted() { return muted; },
   };
 })();
 
-// ═══════════════════════════════════
-//  GAME
-// ═══════════════════════════════════
-const SYMS  = ['♩','♪','♫','♬','♭','♯'];
-const COLS  = ['n0','n1','n2','n3','n4','n5'];
-const CFGS  = [
+// ════════════════════════════════════════════
+//  GAME LOGIC
+// ════════════════════════════════════════════
+const SYMS = ['♩','♪','♫','♬','♭','♯'];
+const COLS = ['n0','n1','n2','n3','n4','n5'];
+
+const LEVELS = [
   {id:1, size:6, types:4, target:5000,  moves:120, time:600},
   {id:2, size:7, types:4, target:10000, moves:110, time:540},
   {id:3, size:7, types:5, target:18000, moves:100, time:480},
@@ -485,264 +356,261 @@ const CFGS  = [
   {id:6, size:8, types:6, target:65000, moves:70,  time:300},
 ];
 
-let G = {}; // game state
-let sel = null; // selected cell {r,c}
-let busy = false;
+let G = null;      // game state
+let selCell = null; // currently selected cell {r,c}
+let busy = false;   // true while animation plays
 
-// ── Grid helpers ──
-function rnd(t) { return Math.floor(Math.random() * t); }
+// ── Helpers ──
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rand = n => Math.floor(Math.random() * n);
 
+function cellEl(r, c) {
+  return document.querySelector(`#grid [data-r="${r}"][data-c="${c}"]`);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+// ── Grid generation — NO initial matches ──
 function makeGrid(size, types) {
-  // Fill randomly — initial matches are fine, player can tap them away
-  const g = Array.from({length: size}, () =>
-    Array.from({length: size}, () => rnd(types))
-  );
-  // Make sure there's at least a few matches to start with
-  // by placing some guaranteed 3-in-a-rows
-  for (let i = 0; i < 3; i++) {
-    const r = rnd(size);
-    const c = rnd(size - 2);
-    const v = rnd(types);
-    g[r][c] = g[r][c+1] = g[r][c+2] = v;
+  const g = Array.from({length: size}, () => new Array(size).fill(0));
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      let v, tries = 0;
+      do {
+        v = rand(types);
+        tries++;
+      } while (tries < 20 && (
+        (c >= 2 && g[r][c-1] === v && g[r][c-2] === v) ||
+        (r >= 2 && g[r-1][c] === v && g[r-2][c] === v)
+      ));
+      g[r][c] = v;
+    }
   }
   return g;
 }
 
-// Find all cells that are part of a horizontal or vertical run of 3+
+// ── Match detection — only 3+ consecutive same values ──
 function findMatches(g, size) {
   const hit = Array.from({length:size}, () => new Array(size).fill(false));
-
+  // horizontal
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size - 2; c++) {
       const v = g[r][c];
-      if (v === g[r][c+1] && v === g[r][c+2]) {
+      if (v >= 0 && g[r][c+1] === v && g[r][c+2] === v) {
         let len = 3;
-        while (c+len < size && g[r][c+len] === v) len++;
+        while (c + len < size && g[r][c+len] === v) len++;
         for (let k = 0; k < len; k++) hit[r][c+k] = true;
       }
     }
   }
+  // vertical
   for (let c = 0; c < size; c++) {
     for (let r = 0; r < size - 2; r++) {
       const v = g[r][c];
-      if (v === g[r+1][c] && v === g[r+2][c]) {
+      if (v >= 0 && g[r+1][c] === v && g[r+2][c] === v) {
         let len = 3;
-        while (r+len < size && g[r+len][c] === v) len++;
+        while (r + len < size && g[r+len][c] === v) len++;
         for (let k = 0; k < len; k++) hit[r+k][c] = true;
       }
     }
   }
-
   const res = [];
   for (let r = 0; r < size; r++)
     for (let c = 0; c < size; c++)
-      if (hit[r][c]) res.push({r, c});
+      if (hit[r][c]) res.push({r,c});
   return res;
 }
 
-function hasMove(g, size) {
-  // Try every adjacent swap and see if it creates a match
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      for (const [dr, dc] of [[0,1],[1,0]]) {
-        const r2=r+dr, c2=c+dc;
-        if (r2>=size||c2>=size) continue;
-        [g[r][c],g[r2][c2]]=[g[r2][c2],g[r][c]];
-        const ok = findMatches(g,size).length > 0;
-        [g[r][c],g[r2][c2]]=[g[r2][c2],g[r][c]];
-        if (ok) return true;
-      }
-    }
-  }
-  return false;
-}
-
-// ── DOM ──
-function el(id) { return document.getElementById(id); }
-function cellEl(r, c) { return document.querySelector(`#grid [data-r="${r}"][data-c="${c}"]`); }
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  el(id).classList.add('active');
-}
-
+// ── Render ──
 function buildGrid() {
-  const grid = el('grid');
+  const el = $('grid');
   const {size} = G.cfg;
-  grid.style.gridTemplateColumns = `repeat(${size},1fr)`;
-  grid.innerHTML = '';
+  el.style.gridTemplateColumns = `repeat(${size},1fr)`;
+  el.innerHTML = '';
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       const d = document.createElement('div');
       d.className = 'cell ' + COLS[G.grid[r][c]];
       d.dataset.r = r; d.dataset.c = c;
       d.textContent = SYMS[G.grid[r][c]];
-      grid.appendChild(d);
+      el.appendChild(d);
     }
   }
-  attachCellListeners();
 }
 
-function refreshCell(r, c, anim) {
+function redrawCell(r, c, anim) {
   const d = cellEl(r, c);
   if (!d) return;
   const v = G.grid[r][c];
+  if (v < 0) { d.style.opacity = '0'; return; }
   d.className = 'cell ' + COLS[v];
   d.textContent = SYMS[v];
   d.style.opacity = '';
-  d.style.transform = '';
-  if (anim) {
-    void d.offsetWidth; // force reflow → restart animation
-    d.classList.add(anim);
-  }
+  if (anim) { void d.offsetWidth; d.classList.add(anim); }
 }
 
 function updateHUD() {
-  el('h-score').textContent = G.score;
-  el('h-moves').textContent = G.moves;
-  const t = el('h-time');
+  $('h-pts').textContent = G.pts;
+  $('h-mv').textContent  = G.moves;
+  const t = $('h-tm');
   t.textContent = G.time;
-  t.className = 'hud-val' + (G.time <= 10 ? ' warn' : '');
-  const pct = Math.min(100, Math.round(G.score / G.cfg.target * 100));
-  el('h-prog').style.width = pct + '%';
-  el('h-pct').textContent = pct + '%';
+  t.className = 'hud-val' + (G.time <= 15 ? ' warn' : '');
+  const pct = Math.min(100, Math.round(G.pts / G.cfg.target * 100));
+  $('h-prog').style.width = pct + '%';
+  $('h-pct').textContent = pct + '%';
 }
 
-// ── Core game flow ──
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function doSwap(r1,c1,r2,c2) {
-  if (busy) return;
-  busy = true;
-
-  // Swap in data
-  [G.grid[r1][c1], G.grid[r2][c2]] = [G.grid[r2][c2], G.grid[r1][c1]];
-
-  // Find matches BEFORE animating
-  const matches = findMatches(G.grid, G.cfg.size);
-
-  if (matches.length === 0) {
-    // No match → swap back, shake
-    [G.grid[r1][c1], G.grid[r2][c2]] = [G.grid[r2][c2], G.grid[r1][c1]];
-    [cellEl(r1,c1), cellEl(r2,c2)].forEach(d => { if(d){ d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),300); } });
-    busy = false;
-    return;
-  }
-
-  // Valid match: update visuals for the swap
-  refreshCell(r1, c1);
-  refreshCell(r2, c2);
-  G.moves--;
-
-  // Count matched notes
-  G.notesCleared = (G.notesCleared || 0) + matches.length;
-
-  // Animate matched cells
+// ── Clear a set of matched cells, apply gravity, cascade ──
+async function doClear(matches) {
+  // Animate matched cells away
   matches.forEach(({r,c}) => {
     const d = cellEl(r,c);
     if (d) d.classList.add('pop');
   });
-  await sleep(350);
+  await sleep(370);
 
-  // Remove matched cells and apply gravity
+  // Remove from grid
   matches.forEach(({r,c}) => { G.grid[r][c] = -1; });
+  G.notes += matches.length;
+  G.pts   += matches.length * 30 + Math.max(0, matches.length - 3) * 15;
 
+  // Gravity: drop tiles down
   for (let c = 0; c < G.cfg.size; c++) {
-    // Drop existing tiles down
     let empty = G.cfg.size - 1;
-    for (let r = G.cfg.size-1; r >= 0; r--) {
-      if (G.grid[r][c] >= 0) { G.grid[empty][c] = G.grid[r][c]; if(empty!==r)G.grid[r][c]=-1; empty--; }
+    for (let r = G.cfg.size - 1; r >= 0; r--) {
+      if (G.grid[r][c] >= 0) {
+        G.grid[empty][c] = G.grid[r][c];
+        if (empty !== r) G.grid[r][c] = -1;
+        empty--;
+      }
     }
-    // Fill from top with new random tiles
-    for (let r = empty; r >= 0; r--) G.grid[r][c] = rnd(G.cfg.types);
+    for (let r = empty; r >= 0; r--) G.grid[r][c] = rand(G.cfg.types);
   }
 
-  // Re-render all cells with fall animation
+  // Redraw with drop animation
   for (let r = 0; r < G.cfg.size; r++)
     for (let c = 0; c < G.cfg.size; c++)
-      refreshCell(r, c, 'drop');
+      redrawCell(r, c, 'drop');
 
-  await sleep(320);
+  await sleep(300);
 
-  // Points: 30 per note, bonus for large matches
-  const pts = matches.length * 30 + Math.max(0, matches.length - 3) * 20;
-  G.score += pts;
-
-
-  updateHUD();
-
-  // Check for no valid moves → auto-shuffle
-  if (!hasMove(G.grid, G.cfg.size)) {
-    // no sfx
-    await sleep(200);
-    shuffleGrid();
+  // Auto-cascade: if new matches formed, clear them too
+  const next = findMatches(G.grid, G.cfg.size);
+  if (next.length > 0) {
+    updateHUD();
+    await doClear(next);
   }
+}
 
-  // Check win/loss
-  checkEnd();
-  busy = false;
+// ── Input ──
+function clearSel() {
+  if (selCell) {
+    const d = cellEl(selCell.r, selCell.c);
+    if (d) d.classList.remove('sel');
+    selCell = null;
+  }
+}
+
+async function onTap(r, c) {
+  if (busy || G.over) return;
+
+  if (selCell === null) {
+    // First tap — just select
+    selCell = {r, c};
+    cellEl(r, c).classList.add('sel');
+
+  } else {
+    const {r: r1, c: c1} = selCell;
+    clearSel();
+
+    if (r1 === r && c1 === c) return; // same cell → deselect
+
+    const adjacent = Math.abs(r1 - r) + Math.abs(c1 - c) === 1;
+
+    if (!adjacent) {
+      // Select the new cell instead
+      selCell = {r, c};
+      cellEl(r, c).classList.add('sel');
+      return;
+    }
+
+    // ── Swap the two adjacent cells ──
+    busy = true;
+    [G.grid[r1][c1], G.grid[r][c]] = [G.grid[r][c], G.grid[r1][c1]];
+    redrawCell(r1, c1);
+    redrawCell(r, c);
+
+    const matches = findMatches(G.grid, G.cfg.size);
+
+    if (matches.length === 0) {
+      // No match → swap back + shake
+      await sleep(180);
+      [G.grid[r1][c1], G.grid[r][c]] = [G.grid[r][c], G.grid[r1][c1]];
+      redrawCell(r1, c1);
+      redrawCell(r, c);
+      [cellEl(r1,c1), cellEl(r,c)].forEach(d => {
+        if (!d) return;
+        d.classList.add('shake');
+        setTimeout(() => d.classList.remove('shake'), 300);
+      });
+    } else {
+      // Valid match → clear + cascade
+      G.moves--;
+      await doClear(matches);
+      updateHUD();
+      checkEnd();
+    }
+    busy = false;
+  }
 }
 
 function checkEnd() {
-  if (G.score >= G.cfg.target) {
-    clearInterval(G.interval);
+  if (G.pts >= G.cfg.target) {
     G.over = true;
-    // no sfx
-    setTimeout(showComplete, 500);
+    clearInterval(G.timer);
+    setTimeout(showWin, 400);
   } else if (G.moves <= 0 || G.time <= 0) {
-    clearInterval(G.interval);
     G.over = true;
-    // no sfx
-    setTimeout(showGameOver, 500);
+    clearInterval(G.timer);
+    setTimeout(showLose, 400);
   }
 }
 
-function showComplete() {
-  el('r-score').textContent = G.score;
-  el('r-moves').textContent = G.usedMoves;
-  el('r-time').textContent  = G.time + 's';
-  el('r-notes').textContent = G.notesCleared;
+function showWin() {
+  $('w-pts').textContent = G.pts;
+  $('w-mv').textContent  = G.cfg.moves - G.moves;
+  $('w-tm').textContent  = G.time + 's';
+  $('w-nt').textContent  = G.notes;
   const hs = +localStorage.getItem('mm_hs') || 0;
-  if (G.score > hs) { localStorage.setItem('mm_hs', G.score); el('rec-badge').style.display=''; }
-  else el('rec-badge').style.display='none';
-  showScreen('s-complete');
+  $('rec').style.display = G.pts > hs ? '' : 'none';
+  if (G.pts > hs) localStorage.setItem('mm_hs', G.pts);
+  showScreen('s-win');
 }
 
-function showGameOver() {
-  el('go-score').textContent  = G.score;
-  el('go-target').textContent = G.cfg.target;
-  showScreen('s-over');
+function showLose() {
+  $('l-pts').textContent = G.pts;
+  $('l-tgt').textContent = G.cfg.target;
+  showScreen('s-lose');
 }
 
-function shuffleGrid() {
-  // Fisher-Yates shuffle of all values
-  const vals = [];
-  for(let r=0;r<G.cfg.size;r++) for(let c=0;c<G.cfg.size;c++) vals.push(G.grid[r][c]);
-  for(let i=vals.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vals[i],vals[j]]=[vals[j],vals[i]]; }
-  let k=0;
-  for(let r=0;r<G.cfg.size;r++) for(let c=0;c<G.cfg.size;c++) G.grid[r][c]=vals[k++];
-  buildGrid();
-  if (!hasMove(G.grid, G.cfg.size)) shuffleGrid(); // try again if still stuck
-}
-
-// ── Start level ──
 function startLevel(id) {
-  const cfg = CFGS.find(c=>c.id===id) || CFGS[0];
-  G = {
-    cfg, grid: makeGrid(cfg.size, cfg.types),
-    score: 0, moves: cfg.moves, time: cfg.time,
-    usedMoves: 0, notesCleared: 0, over: false,
-    interval: null
-  };
-  sel = null; busy = false;
+  const cfg = LEVELS.find(l => l.id === id) || LEVELS[0];
+  G = { cfg, grid: makeGrid(cfg.size, cfg.types),
+        pts: 0, moves: cfg.moves, time: cfg.time,
+        notes: 0, over: false, timer: null };
+  selCell = null; busy = false;
 
-  el('h-level').textContent  = cfg.id;
-  el('h-target').textContent = cfg.target;
+  $('h-lvl').textContent = cfg.id;
+  $('h-tgt').textContent = cfg.target;
   updateHUD();
   buildGrid();
-  Music.play(cfg.id);
+  Snd.play(cfg.id);
 
-  G.interval = setInterval(() => {
+  G.timer = setInterval(() => {
     if (G.over) return;
     G.time--;
     updateHUD();
@@ -752,200 +620,100 @@ function startLevel(id) {
   showScreen('s-game');
 }
 
-// ── Input ──
-// 1. Tap a cell in an existing 3-in-a-row → clears immediately
-// 2. Tap any cell → select it; tap adjacent cell → swap
-//    If swap makes a match → clear; else → swap back
-function onTap(r, c) {
-  if (busy || G.over) return;
-
-  // Check if tapped cell is already part of a match
-  const existing = findMatches(G.grid, G.cfg.size);
-  if (existing.some(m => m.r===r && m.c===c)) {
-    // Clear all existing matches on one tap
-    sel = null;
-    document.querySelectorAll('.cell.sel').forEach(d => d.classList.remove('sel'));
-    G.moves--; G.usedMoves++;
-    clearMatchesInner(existing);
-    return;
-  }
-
-  // Otherwise: swap mechanic
-  if (sel === null) {
-    sel = {r, c};
-    const d = cellEl(r, c);
-    if (d) d.classList.add('sel');
-  } else {
-    const {r:sr, c:sc} = sel;
-    const prev = cellEl(sr, sc);
-    if (prev) prev.classList.remove('sel');
-    sel = null;
-
-    if (sr===r && sc===c) return; // same cell → deselect
-
-    const adj = Math.abs(sr-r) + Math.abs(sc-c) === 1;
-    if (adj) {
-      G.moves--; G.usedMoves++;
-      doSwap(sr, sc, r, c);
-    } else {
-      sel = {r, c};
-      const d = cellEl(r, c);
-      if (d) d.classList.add('sel');
-    }
-  }
-}
-
-async function doSwap(r1, c1, r2, c2) {
-  busy = true;
-  try {
-    [G.grid[r1][c1], G.grid[r2][c2]] = [G.grid[r2][c2], G.grid[r1][c1]];
-    refreshCell(r1, c1);
-    refreshCell(r2, c2);
-
-    const matches = findMatches(G.grid, G.cfg.size);
-    if (matches.length === 0) {
-      await sleep(200);
-      [G.grid[r1][c1], G.grid[r2][c2]] = [G.grid[r2][c2], G.grid[r1][c1]];
-      refreshCell(r1, c1);
-      refreshCell(r2, c2);
-      [cellEl(r1,c1), cellEl(r2,c2)].forEach(d => {
-        if (d) { d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),300); }
-      });
-      G.moves++; G.usedMoves--; // undo
-      busy = false;
-      return;
-    }
-    await clearMatchesInner(matches);
-  } catch(e) { console.error(e); busy = false; }
-}
-
-async function clearMatchesInner(matches) {
-  try {
-    let combo = 0;
-    let toProcess = matches;
-
-    // Keep clearing as long as new matches form (cascades)
-    while (toProcess.length > 0) {
-      combo++;
-      G.notesCleared = (G.notesCleared||0) + toProcess.length;
-      const pts = toProcess.length * 30 * combo + Math.max(0, toProcess.length-3) * 20;
-      G.score += pts;
-
-      toProcess.forEach(({r,c}) => { const d=cellEl(r,c); if(d) d.classList.add('pop'); });
-      // Music.match(toProcess.length); // no click SFX
-      await sleep(350);
-
-      toProcess.forEach(({r,c}) => { G.grid[r][c] = -1; });
-
-      for (let c=0; c<G.cfg.size; c++) {
-        let empty = G.cfg.size-1;
-        for (let r=G.cfg.size-1; r>=0; r--) {
-          if (G.grid[r][c]>=0) { G.grid[empty][c]=G.grid[r][c]; if(empty!==r)G.grid[r][c]=-1; empty--; }
-        }
-        for (let r=empty; r>=0; r--) G.grid[r][c]=rnd(G.cfg.types);
-      }
-
-      for (let r=0;r<G.cfg.size;r++)
-        for (let c=0;c<G.cfg.size;c++)
-          refreshCell(r,c,'drop');
-
-      await sleep(320);
-
-      // Check for new matches formed by fallen tiles
-      toProcess = findMatches(G.grid, G.cfg.size);
-    }
-
-    // If still no matches on board → auto-refill with new tiles
-    while (findMatches(G.grid, G.cfg.size).length === 0) {
-      // no sfx
-      G.grid = makeGrid(G.cfg.size, G.cfg.types);
-      buildGrid();
-      await sleep(400);
-    }
-
-    updateHUD();
-    checkEnd();
-  } catch(e){ console.error(e); }
-  finally { busy = false; }
-}
-
-// Single tap listener — each cell gets its own listener for reliability
-function initGridInput() {
-  // Called by buildGrid after cells are created
-}
-
-function attachCellListeners() {
-  document.querySelectorAll('#grid .cell').forEach(cell => {
-    cell.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      onTap(+cell.dataset.r, +cell.dataset.c);
-    }, {passive: false});
-  });
-}
-
-// ── UI wiring ──
+// ── Event listeners ──
 document.addEventListener('DOMContentLoaded', () => {
-  // Audio on first interaction
-  document.addEventListener('touchstart', () => { Music.init(); Music.play(1); }, {once:true, passive:true});
-  document.addEventListener('click',      () => { Music.init(); Music.play(1); }, {once:true});
+  // Start audio on first touch/click
+  const startAudio = () => { Snd.init(); Snd.play(1); };
+  document.addEventListener('pointerdown', startAudio, {once: true});
 
-  el('hs').textContent = localStorage.getItem('mm_hs') || '0';
+  $('hs').textContent = localStorage.getItem('mm_hs') || '0';
 
   // Level select
-  let chosenLevel = 1;
-  el('level-grid').addEventListener('click', e => {
+  let chosen = 1;
+  document.getElementById('s-start').addEventListener('click', e => {
     const b = e.target.closest('.lvl-btn');
     if (!b) return;
-    document.querySelectorAll('.lvl-btn').forEach(x=>x.classList.remove('sel'));
+    document.querySelectorAll('.lvl-btn').forEach(x => x.classList.remove('sel'));
     b.classList.add('sel');
-    chosenLevel = +b.dataset.l;
+    chosen = +b.dataset.l;
   });
 
-  el('btn-play').addEventListener('click', () => startLevel(chosenLevel));
+  $('btn-play').addEventListener('click', () => startLevel(chosen));
 
-  el('btn-help').addEventListener('click', () =>
-    alert('🎵 So wird gespielt:\n\nSchau das Spielfeld an und suche 3 oder mehr GLEICHE Noten die direkt nebeneinander stehen — waagerecht oder senkrecht.\n\nTimpe einfach auf eine dieser Noten → alle gleichen in dieser Reihe verschwinden und du bekommst Punkte!\n\nWenn eine Note alleine steht oder nur 2 gleiche nebeneinander sind, passiert nichts.\n\n🏆 Ziel: Genug Punkte sammeln bevor Zeit oder Züge ablaufen!')
+  $('btn-help').addEventListener('click', () =>
+    alert(
+      '🎵 So spielst du MelodyMatch:\n\n' +
+      '1. Tippe eine Note an — sie leuchtet gold auf.\n' +
+      '2. Tippe eine direkt danebenliegende (!) Note an — die beiden tauschen die Plätze.\n' +
+      '3. Wenn durch den Tausch 3 oder mehr gleiche Noten in einer REIHE oder SPALTE entstehen → verschwinden sie automatisch!\n' +
+      '4. Neue Noten fallen von oben nach.\n' +
+      '5. Sammle genug Punkte vor Ablauf der Zeit!'
+    )
   );
 
-  el('mute-btn').addEventListener('click', () => {
-    const m = Music.toggleMute();
-    el('mute-btn').textContent = m ? '🔇' : '♪';
-    el('mute-btn').style.opacity = m ? '0.4' : '1';
+  $('mute').addEventListener('click', () => {
+    const m = Snd.mute();
+    $('mute').textContent = m ? '🔇' : '♪';
+    $('mute').style.opacity = m ? '.4' : '1';
   });
 
-  el('btn-hint').addEventListener('click', () => {
-    if (busy || G.over) return;
-    const matches = findMatches(G.grid, G.cfg.size);
-    if (matches.length > 0) {
-      matches.forEach(({r,c}) => {
-        const d = cellEl(r,c);
-        if (!d) return;
-        d.style.boxShadow = '0 0 0 3px #e8c97a, 0 0 16px #e8c97a';
-        setTimeout(() => d.style.boxShadow = '', 1800);
-      });
+  // Tipp-Button
+  $('btn-hint').addEventListener('click', () => {
+    if (busy || !G || G.over) return;
+    const size = G.cfg.size;
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        for (const [dr,dc] of [[0,1],[1,0]]) {
+          const r2=r+dr, c2=c+dc;
+          if (r2>=size||c2>=size) continue;
+          [G.grid[r][c],G.grid[r2][c2]]=[G.grid[r2][c2],G.grid[r][c]];
+          const ok = findMatches(G.grid, size).length > 0;
+          [G.grid[r][c],G.grid[r2][c2]]=[G.grid[r2][c2],G.grid[r][c]];
+          if (ok) {
+            [cellEl(r,c),cellEl(r2,c2)].forEach(d => {
+              if (!d) return;
+              d.style.boxShadow = '0 0 0 3px #e8c97a,0 0 14px #e8c97a';
+              setTimeout(() => d.style.boxShadow='', 1800);
+            });
+            return;
+          }
+        }
+      }
     }
   });
 
-  el('btn-shuffle').addEventListener('click', () => { if(!busy&&!G.over){// no sfxshuffleGrid();} });
-
-  el('btn-menu').addEventListener('click', () => {
-    clearInterval(G.interval);
-    el('hs').textContent = localStorage.getItem('mm_hs')||'0';
+  $('btn-menu').addEventListener('click', () => {
+    if (G) { clearInterval(G.timer); G.over = true; }
+    clearSel(); busy = false;
+    $('hs').textContent = localStorage.getItem('mm_hs') || '0';
     showScreen('s-start');
   });
 
-  el('btn-next').addEventListener('click', () => {
-    const next = Math.min((G.cfg.id)+1, 6);
-    chosenLevel = next;
-    document.querySelectorAll('.lvl-btn').forEach(b=>b.classList.toggle('sel',+b.dataset.l===next));
+  // Win screen
+  $('btn-next').addEventListener('click', () => {
+    const next = Math.min(G.cfg.id + 1, 6);
+    document.querySelectorAll('.lvl-btn').forEach(b => b.classList.toggle('sel', +b.dataset.l === next));
     startLevel(next);
   });
+  $('btn-wmenu').addEventListener('click', () => {
+    $('hs').textContent = localStorage.getItem('mm_hs') || '0';
+    showScreen('s-start');
+  });
 
-  el('btn-c-menu').addEventListener('click', () => { el('hs').textContent=localStorage.getItem('mm_hs')||'0'; showScreen('s-start'); });
-  el('btn-retry').addEventListener('click',  () => startLevel(G.cfg.id));
-  el('btn-o-menu').addEventListener('click', () => { el('hs').textContent=localStorage.getItem('mm_hs')||'0'; showScreen('s-start'); });
+  // Lose screen
+  $('btn-retry').addEventListener('click',  () => startLevel(G.cfg.id));
+  $('btn-lmenu').addEventListener('click',  () => {
+    $('hs').textContent = localStorage.getItem('mm_hs') || '0';
+    showScreen('s-start');
+  });
 
-  initGridInput();
+  // Grid input — one pointerdown per cell
+  $('grid').addEventListener('pointerdown', e => {
+    const cell = e.target.closest('.cell');
+    if (!cell) return;
+    e.preventDefault();
+    onTap(+cell.dataset.r, +cell.dataset.c);
+  });
 });
 </script>
 </body>
