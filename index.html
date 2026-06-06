@@ -705,125 +705,147 @@ const Audio = (() => {
   let masterGain = null;
   let musicGain = null;
   let sfxGain = null;
-  let bgNodes = [];
   let muted = false;
   let musicPlaying = false;
   let scheduleTimer = null;
+  let currentLevel = 1;
+  let nextBarTime = 0;
+  let barIndex = 0;
 
-  // Piano note frequencies (C4 = 261.63 Hz)
-  const NOTES = {
+  // All note frequencies
+  const F = {
+    C2:65.41, G2:98.00, A2:110.00, B2:123.47,
     C3:130.81, D3:146.83, E3:164.81, F3:174.61, G3:196.00, A3:220.00, B3:246.94,
     C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, B4:493.88,
-    C5:523.25, D5:587.33, E5:659.25, G5:783.99, A5:880.00
+    C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99, A5:880.00, B5:987.77,
+    Cs4:277.18, Fs4:369.99, Gs4:415.30, As4:466.16,
+    Cs5:554.37, Fs5:739.99,
   };
+
+  // 6 calming themes — each with a bass note, chord, and gentle melody
+  // BAR = duration of one bar in seconds (slow & calming)
+  const THEMES = [
+    { // Level 1 — Adagio: C major, very slow, minimal solo piano
+      bar: 3.5,
+      bass:   [F.C3, F.C3, F.G2, F.G2],
+      chords: [[F.E4,F.G4], [F.E4,F.G4], [F.D4,F.G4], [F.D4,F.B3]],
+      melody: [[F.G4, null, F.E4, null], [F.G4, null, F.E4, null], [F.F4, null, F.D4, null], [F.F4, null, F.B4, null]],
+      vol: 0.10,
+    },
+    { // Level 2 — Andante: G major pentatonic, flowing like a music box
+      bar: 3.0,
+      bass:   [F.G2, F.D3, F.C3, F.D3],
+      chords: [[F.D4,F.G4], [F.D4,F.Fs4], [F.C4,F.E4], [F.D4,F.Fs4]],
+      melody: [[F.G4,F.A4,F.B4,null],[F.Fs4,F.G4,null,F.D4],[F.E4,F.G4,F.A4,null],[F.D4,F.Fs4,F.G4,null]],
+      vol: 0.09,
+    },
+    { // Level 3 — Moderato: F major, gentle accordion waltz
+      bar: 2.8,
+      bass:   [F.F3, F.C3, F.G3, F.F3],
+      chords: [[F.F4,F.A4], [F.E4,F.G4], [F.D4,F.G4], [F.F4,F.A4]],
+      melody: [[F.A4,null,F.C5,null],[F.G4,null,F.E4,null],[F.F4,null,F.D4,null],[F.A4,null,F.F4,null]],
+      vol: 0.09,
+    },
+    { // Level 4 — Allegro: D minor, dreamy & melancholic
+      bar: 2.5,
+      bass:   [F.D3, F.A2, F.G2, F.A2],
+      chords: [[F.D4,F.F4],[F.C4,F.E4],[F.G3,F.B3],[F.A3,F.Cs4]],
+      melody: [[F.A4,F.F4,F.D5,F.A4],[F.G4,null,F.E4,F.C5],[F.F4,F.D4,null,F.B4],[F.E4,F.A4,F.Cs5,null]],
+      vol: 0.09,
+    },
+    { // Level 5 — Vivace: A major, bright & lyrical
+      bar: 2.2,
+      bass:   [F.A2, F.E3, F.D3, F.E3],
+      chords: [[F.A3,F.Cs4,F.E4],[F.E3,F.Gs4,F.B3],[F.D3,F.Fs4,F.A3],[F.E3,F.Gs4,F.B3]],
+      melody: [[F.E5,F.Cs5,F.A4,F.E5],[F.B4,F.Gs4,F.E4,F.B4],[F.A4,F.Fs4,F.D4,F.A4],[F.Gs4,F.E4,F.B4,null]],
+      vol: 0.08,
+    },
+    { // Level 6 — Presto: E minor, mysterious & flowing
+      bar: 2.0,
+      bass:   [F.E2, F.B2, F.G2, F.A2],
+      chords: [[F.E3,F.G3,F.B3],[F.B2,F.D3,F.Fs3],[F.G2,F.B2,F.D3],[F.A2,F.C3,F.E3]],
+      melody: [[F.E5,F.D5,F.B4,F.G4],[F.Fs5,F.D5,F.B4,null],[F.G4,F.B4,F.D5,F.G5],[F.A4,F.E4,F.Cs5,null]],
+      vol: 0.08,
+    },
+  ];
 
   function init() {
     if (ctx) return;
     ctx = new (window.AudioContext || window.webkitAudioContext)();
-    masterGain = ctx.createGain(); masterGain.gain.value = 0.85;
-    musicGain  = ctx.createGain(); musicGain.gain.value  = 0.35;
-    sfxGain    = ctx.createGain(); sfxGain.gain.value    = 0.7;
+    masterGain = ctx.createGain(); masterGain.gain.value = 0.8;
+    musicGain  = ctx.createGain(); musicGain.gain.value  = 1.0;
+    sfxGain    = ctx.createGain(); sfxGain.gain.value    = 0.6;
     musicGain.connect(masterGain);
     sfxGain.connect(masterGain);
     masterGain.connect(ctx.destination);
   }
 
-  // Soft piano-like tone using oscillators + envelope
-  function playTone(freq, startTime, duration, type='sine', vol=0.5, dest=null) {
-    if (!ctx) return null;
-    const osc = ctx.createOscillator();
+  // Soft piano note: very gentle attack, long warm decay
+  function pianoNote(freq, t, dur, vol, dest) {
+    if (!ctx || freq == null) return;
+    const osc  = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
     const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
+    const filt = ctx.createBiquadFilter();
 
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, startTime);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.998, startTime + duration);
+    osc.type  = 'sine';  osc.frequency.value  = freq;
+    osc2.type = 'triangle'; osc2.frequency.value = freq * 2.01;
 
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(2000, startTime);
-    filter.frequency.exponentialRampToValueAtTime(800, startTime + duration * 0.7);
+    filt.type = 'lowpass'; filt.frequency.value = 1800; filt.Q.value = 0.5;
 
-    // ADSR envelope
-    gain.gain.setValueAtTime(0, startTime);
-    gain.gain.linearRampToValueAtTime(vol, startTime + 0.012);
-    gain.gain.exponentialRampToValueAtTime(vol * 0.6, startTime + 0.08);
-    gain.gain.exponentialRampToValueAtTime(vol * 0.4, startTime + duration * 0.5);
-    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    const attack = 0.04, decay = 0.3;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + attack);
+    gain.gain.exponentialRampToValueAtTime(vol * 0.5, t + attack + decay);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(dest || sfxGain);
-    osc.start(startTime);
-    osc.stop(startTime + duration + 0.05);
-    return osc;
+    const g2 = ctx.createGain(); g2.gain.value = 0.15;
+    osc2.connect(g2); g2.connect(filt);
+    osc.connect(filt); filt.connect(gain);
+    gain.connect(dest || musicGain);
+
+    osc.start(t); osc.stop(t + dur + 0.1);
+    osc2.start(t); osc2.stop(t + dur + 0.1);
   }
-
-  // Accordion-like chord: sine + slight detuned saw
-  function playChord(freqs, startTime, duration, vol=0.18) {
-    freqs.forEach(f => {
-      playTone(f, startTime, duration, 'sine', vol, musicGain);
-      playTone(f * 1.002, startTime, duration, 'triangle', vol * 0.3, musicGain);
-    });
-  }
-
-  // Background music: calming piano waltz progression
-  // Chords: Am - F - C - G (loop)
-  const PROGRESSION = [
-    // Am chord  (A3 C4 E4)
-    [NOTES.A3, NOTES.C4, NOTES.E4],
-    // F chord   (F3 A3 C4)
-    [NOTES.F3, NOTES.A3, NOTES.C4],
-    // C chord   (C3 E3 G3)
-    [NOTES.C3, NOTES.E3, NOTES.G3],
-    // G chord   (G3 B3 D4)
-    [NOTES.G3, NOTES.B3, NOTES.D4],
-  ];
-
-  // Melody notes over the chords
-  const MELODY = [
-    [NOTES.A4, NOTES.E4, NOTES.C5, NOTES.A4],
-    [NOTES.F4, NOTES.A4, NOTES.C5, NOTES.A4],
-    [NOTES.E4, NOTES.G4, NOTES.C5, NOTES.E4],
-    [NOTES.G4, NOTES.D5, NOTES.B4, NOTES.G4],
-  ];
-
-  const BAR = 2.2; // seconds per bar
-  let nextBarTime = 0;
-  let barIndex = 0;
 
   function scheduleBar() {
     if (!ctx || muted || !musicPlaying) return;
+    const theme = THEMES[(currentLevel - 1) % THEMES.length];
     const t = nextBarTime;
+    const bar = theme.bar;
+    const step = bar / 4;
+    const bi = barIndex % 4;
 
-    // Chord pad
-    playChord(PROGRESSION[barIndex % 4], t, BAR * 0.95, 0.15);
+    // Bass note — very soft, long
+    pianoNote(theme.bass[bi], t, bar * 0.9, theme.vol * 0.7, musicGain);
 
-    // Bass note
-    playTone(PROGRESSION[barIndex % 4][0] / 2, t, BAR * 0.9, 'sine', 0.12, musicGain);
-
-    // Melody arpeggios
-    const mel = MELODY[barIndex % 4];
-    mel.forEach((f, i) => {
-      const noteDur = BAR / mel.length;
-      playTone(f, t + i * noteDur, noteDur * 0.85, 'sine', 0.10, musicGain);
-      // Harmonics for piano colour
-      playTone(f * 2, t + i * noteDur, noteDur * 0.5, 'sine', 0.03, musicGain);
+    // Chord — soft, held
+    (theme.chords[bi] || []).forEach((f, i) => {
+      pianoNote(f, t + 0.02 * i, bar * 0.85, theme.vol * 0.55, musicGain);
     });
 
-    nextBarTime += BAR;
+    // Melody — gentle notes, some rests (null = silence)
+    (theme.melody[bi] || []).forEach((f, i) => {
+      if (f != null) pianoNote(f, t + i * step, step * 0.8, theme.vol * 0.9, musicGain);
+    });
+
+    nextBarTime += bar;
     barIndex++;
   }
 
   function schedulerLoop() {
     if (!musicPlaying) return;
-    while (nextBarTime < ctx.currentTime + BAR * 2) scheduleBar();
-    scheduleTimer = setTimeout(schedulerLoop, 200);
+    const theme = THEMES[(currentLevel - 1) % THEMES.length];
+    while (nextBarTime < ctx.currentTime + theme.bar * 2) scheduleBar();
+    scheduleTimer = setTimeout(schedulerLoop, 300);
   }
 
-  function startMusic() {
-    if (!ctx || musicPlaying) return;
+  function startMusic(level) {
+    if (!ctx) return;
+    stopMusic();
+    currentLevel = level || currentLevel;
     musicPlaying = true;
-    nextBarTime = ctx.currentTime + 0.1;
+    nextBarTime = ctx.currentTime + 0.2;
     barIndex = 0;
     schedulerLoop();
   }
@@ -833,58 +855,42 @@ const Audio = (() => {
     clearTimeout(scheduleTimer);
   }
 
-  // SFX
+  // SFX — soft chime sounds
   const SFX = {
     select() {
       if (!ctx || muted) return;
-      playTone(NOTES.E5, ctx.currentTime, 0.12, 'sine', 0.3);
+      pianoNote(F.E5, ctx.currentTime, 0.3, 0.18, sfxGain);
     },
     match(count) {
       if (!ctx || muted) return;
       const t = ctx.currentTime;
-      const freqs = [NOTES.C5, NOTES.E5, NOTES.G5, NOTES.A5];
-      for (let i = 0; i < Math.min(count, 4); i++) {
-        playTone(freqs[i], t + i * 0.06, 0.25, 'sine', 0.35);
-      }
-    },
-    combo(n) {
-      if (!ctx || muted) return;
-      const t = ctx.currentTime;
-      const scale = [NOTES.C5, NOTES.E5, NOTES.G5, NOTES.C5*2];
-      scale.forEach((f, i) => playTone(f * (1 + n*0.1), t + i*0.08, 0.2, 'sine', 0.4));
+      [F.C5, F.E5, F.G5, F.A5].slice(0, Math.min(count, 4)).forEach((f, i) => {
+        pianoNote(f, t + i * 0.08, 0.5, 0.22, sfxGain);
+      });
     },
     levelUp() {
       if (!ctx || muted) return;
       const t = ctx.currentTime;
-      [NOTES.C4, NOTES.E4, NOTES.G4, NOTES.C5].forEach((f,i) =>
-        playTone(f, t + i*0.12, 0.4, 'sine', 0.4)
-      );
+      [F.C4, F.E4, F.G4, F.C5].forEach((f, i) => pianoNote(f, t + i * 0.15, 0.6, 0.25, sfxGain));
     },
     gameOver() {
       if (!ctx || muted) return;
       const t = ctx.currentTime;
-      [NOTES.G3, NOTES.E3, NOTES.C3].forEach((f,i) =>
-        playTone(f, t + i*0.18, 0.5, 'sine', 0.3)
-      );
+      [F.G3, F.E3, F.C3].forEach((f, i) => pianoNote(f, t + i * 0.2, 0.7, 0.2, sfxGain));
     },
     shuffle() {
       if (!ctx || muted) return;
       const t = ctx.currentTime;
-      for (let i = 0; i < 8; i++) {
-        const f = 200 + Math.random() * 600;
-        playTone(f, t + i*0.04, 0.08, 'sine', 0.15);
-      }
+      [F.C5, F.D5, F.E5, F.G5].forEach((f, i) => pianoNote(f, t + i * 0.07, 0.25, 0.15, sfxGain));
     }
   };
 
   return {
-    init,
-    startMusic,
-    stopMusic,
-    SFX,
+    init, startMusic, stopMusic, SFX,
+    setLevel(l) { currentLevel = l; },
     toggleMute() {
       muted = !muted;
-      if (masterGain) masterGain.gain.value = muted ? 0 : 0.85;
+      if (masterGain) masterGain.gain.value = muted ? 0 : 0.8;
       if (!muted && !musicPlaying) startMusic();
       return muted;
     },
@@ -1004,36 +1010,42 @@ const Game = (() => {
   }
 
   function findMatches(grid, size) {
-    const matched = new Set();
-    // Horizontal
+    // mark[r][c] = true if this cell is part of a 3+ run
+    const mark = Array.from({length: size}, () => new Array(size).fill(false));
+
+    // Horizontal runs
     for (let r = 0; r < size; r++) {
-      let run = 1;
+      let start = 0;
       for (let c = 1; c <= size; c++) {
-        if (c < size && grid[r][c] === grid[r][c-1]) {
-          run++;
-        } else {
-          if (run >= 3) {
-            for (let k = c - run; k < c; k++) matched.add(`${r},${k}`);
+        const sameAsPrev = c < size && grid[r][c] >= 0 && grid[r][c] === grid[r][c-1];
+        if (!sameAsPrev) {
+          if (c - start >= 3) {
+            for (let k = start; k < c; k++) mark[r][k] = true;
           }
-          run = 1;
+          start = c;
         }
       }
     }
-    // Vertical
+
+    // Vertical runs
     for (let c = 0; c < size; c++) {
-      let run = 1;
+      let start = 0;
       for (let r = 1; r <= size; r++) {
-        if (r < size && grid[r][c] === grid[r-1][c]) {
-          run++;
-        } else {
-          if (run >= 3) {
-            for (let k = r - run; k < r; k++) matched.add(`${k},${c}`);
+        const sameAsPrev = r < size && grid[r][c] >= 0 && grid[r][c] === grid[r-1][c];
+        if (!sameAsPrev) {
+          if (r - start >= 3) {
+            for (let k = start; k < r; k++) mark[k][c] = true;
           }
-          run = 1;
+          start = r;
         }
       }
     }
-    return [...matched].map(s => { const [r,c] = s.split(','); return {r:+r,c:+c}; });
+
+    const result = [];
+    for (let r = 0; r < size; r++)
+      for (let c = 0; c < size; c++)
+        if (mark[r][c]) result.push({r, c});
+    return result;
   }
 
   function hasValidMove(grid, size, numTypes) {
@@ -1080,9 +1092,17 @@ const Game = (() => {
     const el = cellEl(r, c);
     if (!el) return;
     const t = state.grid[r][c];
+    if (t < 0) return;
     const nt = NOTE_TYPES[t];
-    el.className = `cell ${nt.cls}${animate ? ' falling' : ''}`;
+    // Force animation restart by removing class, triggering reflow, re-adding
+    el.className = `cell ${nt.cls}`;
     el.textContent = nt.sym;
+    el.style.opacity = '1';
+    el.style.transform = '';
+    if (animate) {
+      void el.offsetWidth; // reflow to restart animation
+      el.classList.add('falling');
+    }
   }
 
   function buildGrid() {
@@ -1377,6 +1397,7 @@ const Game = (() => {
     document.getElementById('target-display').textContent = cfg.target;
     updateHUD();
     buildGrid();
+    Audio.startMusic(cfg.id);
 
     // Timer
     state.timerInterval = setInterval(() => {
