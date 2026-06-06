@@ -999,7 +999,7 @@ const Game = (() => {
           grid[r][c] = randomNote(numTypes);
         }
       }
-    } while (findMatches(grid, size).length === 0 || !hasValidMove(grid, size, numTypes));
+    } while (findMatches(grid, size).length > 0 || !hasValidMove(grid, size, numTypes));
     return grid;
   }
 
@@ -1160,27 +1160,29 @@ const Game = (() => {
 
   async function trySwap(r1, c1, r2, c2) {
     busy = true;
-    // Visual swap
-    [state.grid[r1][c1], state.grid[r2][c2]] = [state.grid[r2][c2], state.grid[r1][c1]];
-    renderCell(r1, c1);
-    renderCell(r2, c2);
-
-    const matches = findMatches(state.grid, state.cfg.gridSize);
-    if (matches.length === 0) {
-      // Swap back
-      await sleep(150);
+    try {
       [state.grid[r1][c1], state.grid[r2][c2]] = [state.grid[r2][c2], state.grid[r1][c1]];
       renderCell(r1, c1);
       renderCell(r2, c2);
-      busy = false;
-      return;
-    }
 
-    state.movesLeft--;
-    await processMatches();
-    updateHUD();
-    checkEndCondition();
-    busy = false;
+      const matches = findMatches(state.grid, state.cfg.gridSize);
+      if (matches.length === 0) {
+        await sleep(150);
+        [state.grid[r1][c1], state.grid[r2][c2]] = [state.grid[r2][c2], state.grid[r1][c1]];
+        renderCell(r1, c1);
+        renderCell(r2, c2);
+        return;
+      }
+
+      state.movesLeft--;
+      await processMatches();
+      updateHUD();
+      checkEndCondition();
+    } catch(e) {
+      console.error('trySwap error:', e);
+    } finally {
+      busy = false;
+    }
   }
 
   async function processMatches() {
