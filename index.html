@@ -438,12 +438,12 @@ const Music = (() => {
 const SYMS  = ['♩','♪','♫','♬','♭','♯'];
 const COLS  = ['n0','n1','n2','n3','n4','n5'];
 const CFGS  = [
-  {id:1, size:6, types:4, target:1500,  moves:60, time:300},
-  {id:2, size:7, types:4, target:3000,  moves:55, time:270},
-  {id:3, size:7, types:5, target:5500,  moves:50, time:240},
-  {id:4, size:8, types:5, target:9000,  moves:45, time:210},
-  {id:5, size:8, types:6, target:14000, moves:40, time:180},
-  {id:6, size:8, types:6, target:20000, moves:35, time:150},
+  {id:1, size:6, types:4, target:5000,  moves:120, time:600},
+  {id:2, size:7, types:4, target:10000, moves:110, time:540},
+  {id:3, size:7, types:5, target:18000, moves:100, time:480},
+  {id:4, size:8, types:5, target:30000, moves:90,  time:420},
+  {id:5, size:8, types:6, target:45000, moves:80,  time:360},
+  {id:6, size:8, types:6, target:65000, moves:70,  time:300},
 ];
 
 let G = {}; // game state
@@ -792,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
   el('btn-play').addEventListener('click', () => startLevel(chosenLevel));
 
   el('btn-help').addEventListener('click', () =>
-    alert('♩ Tippe eine Note an — sie leuchtet auf.\n♪ Tippe dann eine direkt danebenliegende Note an.\n♫ Wenn 3 oder mehr gleiche Noten in einer Reihe entstehen, verschwinden sie!\n♬ Erreiche das Punkteziel vor Zeit- oder Zugablauf.')
+    alert('🎵 Ziel: Das Punkteziel vor Ablauf der Zeit/Züge erreichen.\n\n♩ Tippe eine Note an → sie leuchtet auf.\n♪ Tippe eine ANDERE Note direkt daneben an → sie tauschen die Plätze.\n♫ Entstehen dadurch 3 oder mehr GLEICHE Noten in einer Reihe oder Spalte, verschwinden sie und du bekommst Punkte!\n\n💡 Beispiel:\n  ♩ ♪ ♩ ♩\nTimp das ♪ an, dann das ♩ links → ♪ ♩ ♩ ♩ → die drei ♩ verschwinden!\n\n⚠️ Gleiche Noten gegeneinander tauschen bringt nichts.')
   );
 
   el('mute-btn').addEventListener('click', () => {
