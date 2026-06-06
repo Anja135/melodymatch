@@ -70,15 +70,13 @@ body {
   border-radius: 15px; touch-action: none; }
 
 .cell {
-  width: 52px; height: 52px; border-radius: 10px;
+  width: var(--cs,52px); height: var(--cs,52px); border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; cursor: pointer;
+  font-size: var(--csf,1.6rem); cursor: pointer;
   border: 1px solid rgba(255,255,255,.08);
   user-select: none; -webkit-user-select: none;
   position: relative; overflow: hidden;
 }
-@media(max-width:370px){ .cell{width:44px;height:44px;font-size:1.3rem;} }
-@media(min-width:480px){ .cell{width:60px;height:60px;font-size:1.9rem;} }
 
 /* Note colors — clearly distinct */
 .n0 { background: linear-gradient(135deg,#1a4080,#2060c0); }   /* blue */
@@ -134,6 +132,22 @@ body {
   color: #1a0f00; font-size: .62rem; font-weight: bold; letter-spacing: 2px;
   padding: 4px 14px; border-radius: 20px; margin-bottom: 10px; }
 
+/* ── MUSIK-EINSTELLUNGEN ── */
+#musik-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.82);
+  z-index:80; align-items:center; justify-content:center; }
+.musik-panel { background:#1a1a2e; border:1px solid rgba(232,201,122,.3);
+  border-radius:20px; padding:24px 20px; width:100%; max-width:370px; }
+.musik-panel h2 { color:#e8c97a; font-size:1.2rem; margin-bottom:4px; text-align:center; }
+.musik-panel p  { font-size:.7rem; opacity:.5; text-align:center; margin-bottom:16px; letter-spacing:1px; }
+.mp3-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.mp3-lbl { color:#c9a96e; font-size:.8rem; min-width:68px; }
+.mp3-name { flex:1; font-size:.72rem; opacity:.55; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mp3-pick { background:rgba(232,201,122,.12); border:1px solid rgba(232,201,122,.3);
+  color:#e8c97a; border-radius:8px; padding:5px 10px; font-size:.72rem; cursor:pointer;
+  white-space:nowrap; touch-action:manipulation; }
+.mp3-pick:active { background:rgba(232,201,122,.25); }
+.mp3-clear { background:transparent; border:none; color:#ff6060; font-size:1rem; cursor:pointer; padding:4px; }
+
 /* ── MUTE ── */
 #mute { position: fixed; top: 12px; right: 12px; z-index: 99;
   width: 38px; height: 38px; border-radius: 50%;
@@ -146,6 +160,17 @@ body {
 <body>
 
 <button id="mute">♪</button>
+<button id="btn-musik-open" style="position:fixed;top:12px;left:12px;z-index:99;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(232,201,122,.25);color:#c9a96e;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="Eigene Musik">🎵</button>
+
+<!-- ═══ MUSIK-EINSTELLUNGEN ═══ -->
+<div id="musik-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:80;align-items:center;justify-content:center;">
+  <div class="musik-panel">
+    <h2>🎵 Eigene Musik</h2>
+    <p>MP3-Datei je Level wählen (optional)</p>
+    <div id="mp3-rows"></div>
+    <button class="btn btn-line" id="btn-musik-close" style="margin-top:8px;">✓ Fertig</button>
+  </div>
+</div>
 
 <!-- ═══ START ═══ -->
 <div id="s-start" class="screen active">
@@ -369,6 +394,48 @@ const Snd = (() => {
       if (!muted && !playing) this.play(lvl);
       return muted;
     },
+    get _muted() { return muted; },
+  };
+})();
+
+// ════════════════════════════════════════════
+//  MP3-PLAYER
+// ════════════════════════════════════════════
+const Mp3 = (() => {
+  const files = {};   // level (1-6) -> { url, name, audio }
+  let currentLvl = 0;
+
+  function stopAll() {
+    Object.values(files).forEach(f => { if (f.audio) { f.audio.pause(); f.audio.currentTime = 0; } });
+    currentLvl = 0;
+  }
+
+  return {
+    set(level, file) {
+      if (files[level]?.url) URL.revokeObjectURL(files[level].url);
+      const url = URL.createObjectURL(file);
+      const audio = new Audio(url);
+      audio.loop = true;
+      files[level] = { url, name: file.name, audio };
+    },
+    clear(level) {
+      if (files[level]?.url) URL.revokeObjectURL(files[level].url);
+      delete files[level];
+    },
+    has(level) { return !!files[level]; },
+    name(level) { return files[level]?.name || ''; },
+    play(level, muted) {
+      stopAll();
+      if (!files[level]) return false;
+      currentLvl = level;
+      files[level].audio.volume = muted ? 0 : 0.85;
+      files[level].audio.play().catch(() => {});
+      return true;
+    },
+    stop() { stopAll(); },
+    setVolume(v) {
+      if (currentLvl && files[currentLvl]?.audio) files[currentLvl].audio.volume = v;
+    },
   };
 })();
 
@@ -460,7 +527,13 @@ function findMatches(g, size) {
 function buildGrid() {
   const el = $('grid');
   const {size} = G.cfg;
-  el.style.gridTemplateColumns = `repeat(${size},1fr)`;
+  // Dynamische Zellgröße: passt sich an Bildschirmbreite und Rastergröße an
+  const maxW = Math.min(window.innerWidth - 28, 430);
+  const cs   = Math.max(36, Math.floor((maxW - 22 - (size - 1) * 5) / size));
+  const csf  = cs < 44 ? '1.1rem' : cs < 52 ? '1.4rem' : '1.6rem';
+  el.style.setProperty('--cs',  cs + 'px');
+  el.style.setProperty('--csf', csf);
+  el.style.gridTemplateColumns = `repeat(${size},${cs}px)`;
   el.innerHTML = '';
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
@@ -661,7 +734,9 @@ function startLevel(id) {
   $('h-tgt').textContent = cfg.target;
   updateHUD();
   buildGrid();
-  Snd.play(cfg.id);
+  // MP3 hat Vorrang; sonst synthetisierte Musik
+  const useMp3 = Mp3.play(cfg.id, Snd._muted);
+  if (useMp3) Snd.stop(); else Snd.play(cfg.id);
 
   G.timer = setInterval(() => {
     if (G.over) return;
@@ -706,8 +781,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('mute').addEventListener('click', () => {
     const m = Snd.mute();
+    Mp3.setVolume(m ? 0 : 0.85);
     $('mute').textContent = m ? '🔇' : '♪';
     $('mute').style.opacity = m ? '.4' : '1';
+  });
+
+  // ── Musik-Einstellungen ──
+  const LEVEL_NAMES = ['Für Elise','Kanon in D','Mondscheinsonate','Ode an die Freude','Schwanensee','Rondo alla Turca'];
+  function buildMp3Rows() {
+    const cont = $('mp3-rows');
+    cont.innerHTML = '';
+    for (let i = 1; i <= 6; i++) {
+      const row = document.createElement('div');
+      row.className = 'mp3-row';
+      const hasMp3 = Mp3.has(i);
+      row.innerHTML = `
+        <span class="mp3-lbl">Level ${i}</span>
+        <span class="mp3-name" id="mp3n${i}">${hasMp3 ? '✓ ' + Mp3.name(i) : LEVEL_NAMES[i-1]}</span>
+        <button class="mp3-pick" data-lvl="${i}">Datei…</button>
+        ${hasMp3 ? `<button class="mp3-clear" data-clr="${i}" title="Entfernen">✕</button>` : ''}
+      `;
+      cont.appendChild(row);
+    }
+    // file-pick buttons
+    cont.querySelectorAll('.mp3-pick').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'audio/mp3,audio/mpeg,audio/*';
+        inp.onchange = () => {
+          if (!inp.files[0]) return;
+          Mp3.set(+btn.dataset.lvl, inp.files[0]);
+          buildMp3Rows();
+        };
+        inp.click();
+      });
+    });
+    cont.querySelectorAll('.mp3-clear').forEach(btn => {
+      btn.addEventListener('click', () => { Mp3.clear(+btn.dataset.clr); buildMp3Rows(); });
+    });
+  }
+
+  $('btn-musik-open').addEventListener('click', () => {
+    buildMp3Rows();
+    $('musik-overlay').style.display = 'flex';
+  });
+  $('btn-musik-close').addEventListener('click', () => {
+    $('musik-overlay').style.display = 'none';
   });
 
   // Tipp-Button
