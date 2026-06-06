@@ -712,27 +712,65 @@ function startLevel(id) {
 }
 
 // ── Input ──
-// Mechanic: tap any note that is part of a 3-in-a-row → all in that run disappear.
-// If the note has no match, it shakes.
+// Tap cell A → highlight. Tap adjacent cell B → swap.
+// If swap creates 3-in-a-row → auto-clear + cascade.
+// If no match → swap back (shake).
 function onTap(r, c) {
   if (busy || G.over) return;
 
-  const matches = findMatches(G.grid, G.cfg.size);
-  const isMatch = matches.some(m => m.r===r && m.c===c);
-
-  if (isMatch) {
-    G.usedMoves++;
-    G.moves--;
-    clearMatches(matches);
-  } else {
-    // No match at this cell — shake it
+  if (sel === null) {
+    sel = {r, c};
     const d = cellEl(r, c);
-    if (d) { d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),300); }
+    if (d) d.classList.add('sel');
+  } else {
+    const {r:sr, c:sc} = sel;
+    const prev = cellEl(sr, sc);
+    if (prev) prev.classList.remove('sel');
+    sel = null;
+
+    if (sr===r && sc===c) return; // same cell → deselect
+
+    const adj = Math.abs(sr-r) + Math.abs(sc-c) === 1;
+    if (adj) {
+      G.usedMoves++;
+      G.moves--;
+      doSwap(sr, sc, r, c);
+    } else {
+      // Not adjacent → select new cell
+      sel = {r, c};
+      const d = cellEl(r, c);
+      if (d) d.classList.add('sel');
+    }
   }
 }
 
-async function clearMatches(matches) {
+async function doSwap(r1, c1, r2, c2) {
   busy = true;
+  try {
+    [G.grid[r1][c1], G.grid[r2][c2]] = [G.grid[r2][c2], G.grid[r1][c1]];
+    refreshCell(r1, c1);
+    refreshCell(r2, c2);
+
+    const matches = findMatches(G.grid, G.cfg.size);
+    if (matches.length === 0) {
+      // No match → swap back
+      await sleep(180);
+      [G.grid[r1][c1], G.grid[r2][c2]] = [G.grid[r2][c2], G.grid[r1][c1]];
+      refreshCell(r1, c1);
+      refreshCell(r2, c2);
+      [cellEl(r1,c1), cellEl(r2,c2)].forEach(d => {
+        if (d) { d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),300); }
+      });
+      G.usedMoves--; G.moves++; // undo move count
+      busy = false;
+      return;
+    }
+    await clearMatchesInner(matches);
+  } catch(e) { console.error(e); busy = false; }
+  // busy is reset inside clearMatchesInner's finally block
+}
+
+async function clearMatchesInner(matches) {
   try {
     let combo = 0;
     let toProcess = matches;
@@ -779,7 +817,7 @@ async function clearMatches(matches) {
     updateHUD();
     checkEnd();
   } catch(e){ console.error(e); }
-  finally { busy=false; }
+  finally { busy = false; }
 }
 
 // Single tap listener on the grid — works for touch & mouse
