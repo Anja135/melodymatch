@@ -732,9 +732,13 @@ function onTap(r, c) {
     if (sr===r && sc===c) return; // tapped same cell → deselect
 
     const adj = Math.abs(sr-r)+Math.abs(sc-c)===1;
-    if (adj) {
+    if (adj && G.grid[sr][sc] !== G.grid[r][c]) {
       G.usedMoves++;
       doSwap(sr, sc, r, c);
+    } else if (adj && G.grid[sr][sc] === G.grid[r][c]) {
+      // Same type adjacent — no point swapping, just shake
+      const d = cellEl(r, c);
+      if (d) { d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),300); }
     } else {
       // Not adjacent → select the new cell instead
       sel = {r, c};
