@@ -627,12 +627,12 @@ async function doSwap(r1,c1,r2,c2) {
   const pts = matches.length * 30 + Math.max(0, matches.length - 3) * 20;
   G.score += pts;
 
-  Music.match(matches.length);
+
   updateHUD();
 
   // Check for no valid moves → auto-shuffle
   if (!hasMove(G.grid, G.cfg.size)) {
-    Music.shuffle();
+    // no sfx
     await sleep(200);
     shuffleGrid();
   }
@@ -646,12 +646,12 @@ function checkEnd() {
   if (G.score >= G.cfg.target) {
     clearInterval(G.interval);
     G.over = true;
-    Music.levelUp();
+    // no sfx
     setTimeout(showComplete, 500);
   } else if (G.moves <= 0 || G.time <= 0) {
     clearInterval(G.interval);
     G.over = true;
-    Music.gameOver();
+    // no sfx
     setTimeout(showGameOver, 500);
   }
 }
@@ -745,7 +745,7 @@ async function clearMatches(matches) {
       G.score += pts;
 
       toProcess.forEach(({r,c}) => { const d=cellEl(r,c); if(d) d.classList.add('pop'); });
-      Music.match(toProcess.length);
+      // Music.match(toProcess.length); // no click SFX
       await sleep(350);
 
       toProcess.forEach(({r,c}) => { G.grid[r][c] = -1; });
@@ -770,7 +770,7 @@ async function clearMatches(matches) {
 
     // If still no matches on board → auto-refill with new tiles
     while (findMatches(G.grid, G.cfg.size).length === 0) {
-      Music.shuffle();
+      // no sfx
       G.grid = makeGrid(G.cfg.size, G.cfg.types);
       buildGrid();
       await sleep(400);
@@ -847,7 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  el('btn-shuffle').addEventListener('click', () => { if(!busy&&!G.over){Music.shuffle();shuffleGrid();} });
+  el('btn-shuffle').addEventListener('click', () => { if(!busy&&!G.over){// no sfxshuffleGrid();} });
 
   el('btn-menu').addEventListener('click', () => {
     clearInterval(G.interval);
